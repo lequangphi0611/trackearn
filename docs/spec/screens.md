@@ -17,7 +17,7 @@
 | Route | Màn hình | Chức năng tóm tắt | Quyền |
 |-------|----------|-------------------|-------|
 | `/login` | Đăng nhập | Email + mật khẩu, tạo session (Better Auth). | Public |
-| `/register` | Đăng ký | Tạo tài khoản đầu tiên (owner). Member do owner tạo trong Settings → ẩn route này sau khi đã có owner. | Public / hạn chế |
+| `/register` | Đăng ký | Tạo tài khoản đầu tiên (owner). Sau khi đã có owner thì **khoá** route (logic: kiểm tra DB có user role=owner chưa). Member do owner tạo trong Settings. | Public (đến khi có owner) |
 
 ---
 
@@ -29,13 +29,15 @@
 
 ---
 
-## 3. Giao dịch — `src/app/(dashboard)/transactions/`
+## 3. Giao dịch theo mảng — `src/app/(dashboard)/transactions/`
 
-| Route | Màn hình | Chức năng tóm tắt | Quyền |
+Mỗi mảng có **màn hình giao dịch riêng**. Mỗi màn gồm 3 route con: danh sách (`/...`), nhập nhanh (`/.../new`), chi tiết-sửa (`/.../[id]`). Nhập liệu tối ưu cho mobile. Khi chọn "trả sau" → sinh **công nợ**; trạng thái thanh toán: paid · partial · pending.
+
+| Route (gốc + `/new` + `/[id]`) | Màn hình | Chức năng tóm tắt | Quyền |
 |-------|----------|-------------------|-------|
-| `/transactions` | Danh sách giao dịch | Liệt kê thu/chi, lọc theo mảng / ngày / trạng thái thanh toán (paid · partial · pending). | owner + member |
-| `/transactions/new` | Nhập giao dịch nhanh | Chọn loại (income/expense), mảng, số tiền, đã thu/trả hay trả sau → nếu trả sau sinh **công nợ**. Tối ưu nhập nhanh trên điện thoại. | owner + member |
-| `/transactions/[id]` | Chi tiết / sửa giao dịch | Xem, sửa, xoá một giao dịch; xem công nợ liên kết (nếu có). | owner + member |
+| `/transactions/xe-muc` | Giao dịch — Xe múc | Thu/chi mảng sửa xe múc. Income chủ yếu sinh từ **repair-jobs**; ngoài ra ghi chi phí mảng (vd nhập phụ tùng) và giao dịch thủ công. | owner + member |
+| `/transactions/thiet-bi` | Giao dịch — Thiết bị | Thu/chi mảng thiết bị điện tử. Income từ **bán devices** + sửa chữa nhỏ + phụ kiện lẻ; expense từ **mua devices**. | owner + member |
+| `/transactions/phu-kien` | Giao dịch — Phụ kiện | Bán lẻ phụ kiện (ốp, cáp, pin...) — thu/chi đơn giản, có thể trả ngay hoặc trả sau. | owner + member |
 
 ---
 
@@ -74,7 +76,7 @@
 | Route | Màn hình | Chức năng tóm tắt | Quyền |
 |-------|----------|-------------------|-------|
 | `/debts` | Danh sách công nợ | Ai nợ, tổng nợ, đã trả, còn lại, ngày hẹn trả; lọc chưa thu / quá hạn. Áp dụng cho **cả 3 mảng**. | owner + member |
-| `/debts/[id]` | Chi tiết công nợ | Xem giao dịch gốc; **ghi nhận trả nợ** (cập nhật `paid`, `settled_at` khi trả đủ). | owner + member |
+| `/debts/[id]` | Chi tiết công nợ | Xem giao dịch gốc; **ghi nhận trả nợ** (cộng dồn `paid`). Trả một phần → trạng thái `partial`; trả đủ → set `settled_at` và trạng thái `paid`. | owner + member |
 
 ---
 
@@ -99,9 +101,9 @@
 
 | Nhóm màn hình | owner | member |
 |---------------|:-----:|:------:|
-| Auth | ✅ | ✅ |
+| Auth (login/register) | công khai — chưa cần session | công khai |
 | Dashboard | ✅ đầy đủ | ⚠️ rút gọn |
-| Transactions (list/new/detail) | ✅ | ✅ |
+| Transactions theo mảng (xe-muc/thiet-bi/phu-kien) | ✅ | ✅ |
 | Devices / Spare-parts / Repair-jobs | ✅ | ✅ |
 | Debts | ✅ | ✅ |
 | Reports | ✅ | ❌ |
@@ -109,6 +111,10 @@
 | Settings → users | ✅ | ❌ |
 
 > Middleware Better Auth chặn route theo role. `member` bị redirect khỏi `/reports` và `/settings/users`.
+>
+> **Phân quyền dữ liệu (member):**
+> - "Giao dịch của mình" = giao dịch có `user_id` = member đang đăng nhập (người tạo).
+> - Member **được** nhập liệu và xem dữ liệu vận hành (danh sách giao dịch, kho, công nợ) để làm việc, nhưng **không xem báo cáo tổng hợp** (`/reports`) và không thấy block tổng thu/chi/lãi ở dashboard.
 
 ---
 
@@ -121,9 +127,9 @@
 
 ---
 
-## ⚠️ Điểm cần chốt (default đang dùng — chỉnh nếu cần)
+## Quyết định đã chốt
 
-1. **Dashboard cho member**: hiện giả định member thấy bản rút gọn (chỉ lối tắt nhập + giao dịch của mình), không thấy tổng thu/chi/lãi. → Member có được xem dashboard tổng không?
-2. **3 mảng dùng chung `transactions`** + bộ lọc, thay vì 3 màn hình riêng. → Có muốn tách màn hình riêng cho từng mảng không?
-3. **`/register`**: mở công khai để tạo owner lần đầu rồi khoá, hay seed owner sẵn và bỏ hẳn route đăng ký?
-4. **Repair-jobs** chưa có trong cấu trúc thư mục ở `architecture.md` (chỉ có trong data model) — đã bổ sung route `/repair-jobs`. → Đồng ý thêm nhóm màn hình này chứ?
+1. **Dashboard cho member**: bản **rút gọn** — chỉ lối tắt nhập liệu + giao dịch của mình, không thấy tổng thu/chi/lãi.
+2. **3 mảng**: mỗi mảng có **màn hình giao dịch riêng** (`/transactions/xe-muc`, `/thiet-bi`, `/phu-kien`), không dùng chung 1 màn + bộ lọc.
+3. **`/register`**: **mở công khai** để tạo owner lần đầu, sau khi có owner thì **khoá**; member do owner tạo trong Settings.
+4. **`/repair-jobs`**: giữ làm nhóm màn hình riêng; đã đồng bộ vào cấu trúc thư mục trong `architecture.md`.
