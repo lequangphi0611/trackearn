@@ -91,11 +91,13 @@ trackearn/
 │   │   ├── (auth)/              # login, register
 │   │   ├── (dashboard)/         # layout chính sau login
 │   │   │   ├── page.tsx         # dashboard ngày
-│   │   │   ├── transactions/    # nhập & xem giao dịch
+│   │   │   ├── transactions/    # giao dịch theo mảng (xe-muc, thiet-bi, phu-kien)
+│   │   │   ├── repair-jobs/     # job sửa xe múc
 │   │   │   ├── devices/         # kho thiết bị
 │   │   │   ├── spare-parts/     # kho phụ tùng
 │   │   │   ├── debts/           # công nợ
-│   │   │   └── reports/         # báo cáo tháng
+│   │   │   ├── reports/         # báo cáo tháng (owner)
+│   │   │   └── settings/        # hồ sơ, quản lý người dùng (owner)
 │   │   └── api/                 # API routes (export, webhook)
 │   ├── db/
 │   │   ├── schema.ts            # Drizzle schema
