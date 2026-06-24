@@ -72,7 +72,7 @@ Mục tiêu phục vụ yêu cầu báo cáo tháng trong business-overview:
 ## 4. Nhập liệu (entry)
 
 - **Chi phí thuộc 1 mảng**: nhập tại màn giao dịch của mảng đó (`/transactions/xe-muc` · `/thiet-bi` · `/phu-kien`) — chọn `type = expense` + danh mục.
-- **Chi phí chung** (không thuộc mảng): cần một lối nhập không gắn mảng. **Đề xuất** (⚠️ cần chốt — xem mục 8): thêm màn **`/transactions/chi-phi-chung`** (hoặc mục "Chi phí chung" trên dashboard quick-entry) — form chỉ có `type = expense`, chọn danh mục, `business_line_id = NULL`.
+- **Chi phí chung** (không thuộc mảng): nhập tại **màn riêng `/transactions/chi-phi-chung`** — form chỉ có `type = expense`, chọn danh mục, `business_line_id = NULL`.
 
 Form chi phí (cả thuộc-mảng lẫn chung) **dùng chung bộ trường**: danh mục (select, mặc định `other`), số tiền, ngày, trạng thái thanh toán (đã trả / trả sau → công nợ), ghi chú. Khác biệt duy nhất: form thuộc-mảng gắn sẵn `business_line_id` của mảng; form chung để `NULL`.
 
@@ -105,8 +105,8 @@ Form chi phí (cả thuộc-mảng lẫn chung) **dùng chung bộ trường**: 
 
 ---
 
-## 8. Điểm chưa chốt
+## 8. Quyết định đã chốt
 
-1. **Lối nhập "Chi phí chung"**: thêm màn `/transactions/chi-phi-chung` riêng, hay gộp vào quick-entry trên dashboard? (Đề xuất: màn riêng cho rõ ràng.)
-2. **Phân bổ chi phí chung vào mảng**: hiện để riêng, không phân bổ. Có cần cơ chế phân bổ (theo tỉ lệ doanh thu?) cho báo cáo lãi/lỗ mảng chính xác hơn không? → tạm **không**.
-3. **Owner quản lý danh mục**: hiện chỉ seed sẵn. Có cần màn cho owner thêm/sửa danh mục (`is_system=false`) không? → tạm **không**, thêm sau nếu cần.
+1. **Lối nhập "Chi phí chung"**: **màn riêng `/transactions/chi-phi-chung`**.
+2. **Phân bổ chi phí chung vào mảng**: **không phân bổ** — hiển thị thành mục "Chi phí chung" riêng trong báo cáo (xem [reports.md](./reports.md)).
+3. **Owner quản lý danh mục**: **chỉ seed sẵn**, không có màn quản lý danh mục ở giai đoạn này.

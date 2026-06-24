@@ -38,6 +38,7 @@ Mỗi mảng có **màn hình giao dịch riêng**. Mỗi màn gồm 3 route con
 | `/transactions/xe-muc` | Giao dịch — Xe múc | Thu/chi mảng sửa xe múc. Income chủ yếu sinh từ **repair-jobs**; ngoài ra ghi chi phí mảng (vd nhập phụ tùng) và giao dịch thủ công. | owner + member |
 | `/transactions/thiet-bi` | Giao dịch — Thiết bị | Thu/chi mảng thiết bị điện tử. Income từ **bán devices** + sửa chữa nhỏ + phụ kiện lẻ; expense từ **mua devices**. | owner + member |
 | `/transactions/phu-kien` | Giao dịch — Phụ kiện | Bán lẻ phụ kiện (ốp, cáp, pin...) — thu/chi đơn giản, có thể trả ngay hoặc trả sau. | owner + member |
+| `/transactions/chi-phi-chung` | Chi phí chung | Chi phí **không thuộc mảng nào** (điện, thuê mặt bằng…): chỉ `expense`, chọn danh mục, `business_line_id = NULL`. Xem [expenses.md](./expenses.md). | owner + member |
 
 ---
 

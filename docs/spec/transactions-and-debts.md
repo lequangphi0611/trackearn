@@ -103,9 +103,9 @@ Mọi luồng nghiệp vụ (bán device, job sửa xe, bán phụ kiện, chi p
 
 ---
 
-## 8. Điểm chưa chốt
+## 8. Quyết định đã chốt
 
-1. **Trả dư / điều chỉnh**: cho phép `paid_amount > amount` (trả dư) không? → tạm **không** (chặn ở validate).
-2. **Xoá giao dịch đã có công nợ đang trả dở**: chặn hay cho xoá kèm cảnh báo? → tạm **chặn nếu debt.paid > 0**.
-3. **Lịch sử từng lần trả nợ** (payment history): hiện chỉ lưu tổng `debt.paid`, không lưu từng đợt trả (ngày, số tiền, người ghi). Cần bảng `debt_payments` không? → tạm **không**, thêm sau nếu cần đối soát.
+1. **Trả dư**: **không** cho `paid_amount > amount` — chặn ở validate.
+2. **Xoá giao dịch đã có công nợ đang trả dở**: **chặn nếu `debt.paid > 0`** (kèm cảnh báo).
+3. **Lịch sử trả nợ**: **chỉ lưu tổng `debt.paid`**, không tách bảng `debt_payments` ở giai đoạn này.
 4. Ràng buộc: `0 <= paid <= total`; "quá hạn" = `due_date < hôm nay` và chưa `settled_at`.

@@ -63,7 +63,7 @@ Mảng đơn giản nhất: **bán lẻ phụ kiện** (ốp lưng, cáp, pin…
 
 ---
 
-## 8. Điểm chưa chốt
+## 8. Quyết định đã chốt
 
-1. **Quản lý tồn kho phụ kiện**: hiện **không**. Nếu sau này cần theo dõi tồn/giá vốn từng món → thêm bảng tương tự `spare_parts`. → để mở.
-2. **Ranh giới với phụ kiện bán kèm máy** (mảng thiết bị): xem [devices.md](./devices.md) mục 8 — bán lẻ độc lập ghi `phu_kien`.
+1. **Quản lý tồn kho phụ kiện**: **không** — chỉ ghi giao dịch bán/nhập, không bảng kho, không giá vốn từng món (MVP). Có thể thêm bảng như `spare_parts` sau nếu cần.
+2. **Ranh giới với phụ kiện bán kèm máy**: bán **kèm máy** → mảng `thiet_bi`; bán **lẻ độc lập** → mảng `phu_kien` (xem [devices.md](./devices.md)).

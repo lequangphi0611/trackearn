@@ -19,7 +19,7 @@ Không phát sinh dữ liệu mới — chỉ đọc & tổng hợp từ `transa
 
 | Thành phần | Nguồn / công thức |
 |------------|-------------------|
-| Tổng thu hôm nay | Σ `paid_amount` (hoặc `amount`?) income, `transacted_at` = hôm nay — **xem mục 6.1** |
+| Tổng thu hôm nay | Σ `amount` income, `transacted_at` = hôm nay (accrual); kèm chỉ số "thực thu" = Σ `paid_amount` |
 | Tổng chi hôm nay | Σ expense hôm nay |
 | Lãi hôm nay (tách mảng) | **chênh tiền nhanh** = thu − chi theo từng `business_line` trong ngày (KHÁC "lãi gộp tháng" ở mục 3.2 — xem ghi chú dưới) |
 | Giao dịch trong ngày | list `transactions` hôm nay |
@@ -68,11 +68,9 @@ Cho mỗi `business_line` (xe_muc / thiet_bi / phu_kien). **"Chi phí mảng"** 
 
 ---
 
-## 6. Điểm chưa chốt
+## 6. Quyết định đã chốt
 
-1. **"Doanh thu/lãi" tính theo tiền mặt thực thu (`paid_amount`) hay theo ghi nhận (`amount`)?**
-   - *Cash-basis* (paid_amount): khớp tiền thực có, nhưng trả sau chưa tính.
-   - *Accrual* (amount): phản ánh đủ giao dịch kể cả nợ.
-   - → **Đề xuất**: báo cáo theo `amount` (accrual) cho lãi/lỗ, kèm chỉ số "thực thu" riêng. Cần chốt.
-2. **Mốc "hôm nay"/"tháng"** theo timezone nào → đề xuất giờ VN (Asia/Ho_Chi_Minh).
-3. **Phân bổ chi phí chung vào mảng**: hiện tách riêng, không phân bổ (xem [expenses.md](./expenses.md) mục 8).
+1. **Cơ sở tính doanh thu/lãi**: **accrual (theo `amount`)** — phản ánh đủ giao dịch kể cả công nợ; **kèm chỉ số "thực thu"** (Σ `paid_amount`) hiển thị riêng.
+2. **Timezone** mốc "hôm nay"/"tháng": **`Asia/Ho_Chi_Minh`**.
+3. **Phân bổ chi phí chung vào mảng**: **không** — tách riêng mục "Chi phí chung" (xem [expenses.md](./expenses.md)).
+4. **% thay đổi doanh thu khi tháng trước = 0**: hiển thị "—" (không chia 0).
