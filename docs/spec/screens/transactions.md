@@ -62,6 +62,12 @@ Form (client component) → Server Action `createTransaction` trả `ActionResul
 | `transacted_at` | mặc định now (giờ VN) |
 
 - `business_line_id` gán theo route (ẩn).
+- **Gắn máy (chỉ màn `thiet-bi` + `type = income`)**: hiện ô tùy chọn **"Gắn với máy trong kho"** (chọn device `in_stock`). Chọn máy → giao dịch thành **bán máy**:
+  - `device.sell_price = amount`, `device.sell_date = transacted_at`, `device.status = sold`;
+  - income `source_kind = device_sell`, `source_id = device.id`, link `sell_transaction_id`.
+  - **Dùng chung một logic bán máy** với dialog "Bán ra" ở [devices.md](./devices.md) (cùng 1 hàm/Server Action, KHÔNG viết 2 code path) để 2 lối vào luôn cho kết quả giống hệt.
+  - **Chống bán trùng**: kiểm tra lại device còn `in_stock` tại thời điểm lưu; nếu đã `sold` → trả lỗi `CONFLICT`.
+  - Để trống → thu lẻ (sửa chữa nhỏ / phụ kiện lẻ), `source_kind = manual`.
 - Lưu: validate Zod → tạo transaction; `paid_amount < amount` → sinh **công nợ** (xem [transactions-and-debts.md](../transactions-and-debts.md)). Thành công → về danh sách + revalidate.
 - **Trả dư không nhập ở đây** (paid ≤ amount); tip xử lý ở luồng ghi nhận trả nợ / khoản thu riêng.
 

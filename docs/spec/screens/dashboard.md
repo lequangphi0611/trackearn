@@ -44,7 +44,10 @@ Thứ tự ưu tiên trên mobile (trên xuống):
 
 ### 4.1. Nhập nhanh (đầu trang)
 - **1 nút "Nhập giao dịch"** → mở form nhập nhanh. Trong form chọn **mảng** (Xe múc / Thiết bị / Phụ kiện / **Chi phí chung**) + loại thu/chi + số tiền + trạng thái thanh toán.
-- Form quick-entry tái sử dụng logic Server Action của giao dịch (xem [transactions-and-debts.md](../transactions-and-debts.md)); sau khi lưu → revalidate dashboard.
+- **Bán máy ngay từ form này:** khi chọn mảng **Thiết bị** + loại **Thu**, form hiện thêm ô tùy chọn **"Gắn với máy trong kho"** (chọn 1 device `in_stock`).
+  - **Chọn máy** → giao dịch trở thành **bán máy**: `amount` = giá bán, set `device.status = sold` + income `source_kind = device_sell` (giống dialog "Bán ra" ở [devices.md](./devices.md)).
+  - **Để trống** → thu lẻ mảng thiết bị (sửa chữa nhỏ / phụ kiện lẻ), không gắn máy.
+- Form quick-entry tái sử dụng logic Server Action của giao dịch (xem [transactions.md](./transactions.md), [transactions-and-debts.md](../transactions-and-debts.md)); sau khi lưu → revalidate dashboard.
 
 ### 4.2. Tổng thu — chi — lãi trong ngày (tách mảng)
 - Mỗi mảng (`xe_muc`/`thiet_bi`/`phu_kien`) + dòng **Chi phí chung**: **Thu** = Σ `amount` income; **Chi** = Σ `amount` expense; **Lãi nhanh** = Thu − Chi (chênh tiền nhanh, KHÁC lãi gộp tháng — xem [reports.md](../reports.md)).

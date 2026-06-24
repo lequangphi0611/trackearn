@@ -58,6 +58,9 @@ Thông tin máy; nếu đã bán: giá bán, ngày bán, **lãi** (`sell − buy
 - Máy **đã bán**: chỉ sửa `name` và `condition_note`; không sửa giá mua/bán/ngày trực tiếp (xử lý qua hủy bán rồi bán lại).
 
 ### 4.3. Dialog "Bán ra" (chỉ khi `in_stock`)
+
+> Bán máy có **2 lối vào, cùng một kết quả**: (1) dialog này, (2) form nhập nhanh / giao dịch khi chọn mảng Thiết bị + Thu + "gắn với máy" (xem [screens/dashboard.md](./dashboard.md), [screens/transactions.md](./transactions.md)). Cả hai đều set `sold` + sinh income `device_sell`.
+
 Nút **"Bán ra"** mở dialog:
 
 | Trường | Ràng buộc |
