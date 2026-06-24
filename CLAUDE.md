@@ -7,6 +7,8 @@ Web app quản lý doanh thu cho hộ kinh doanh nhỏ — thay thế Excel và 
 - [Business Overview](docs/business-overview.md) — bài toán, 3 mảng kinh doanh, người dùng, nhu cầu báo cáo
 - [Tech Stack](docs/tech-stack.md) — Next.js 15, Drizzle + PostgreSQL, Better Auth, PWA, Docker Compose
 - [Architecture](docs/architecture.md) — data model, luồng dữ liệu, cấu trúc thư mục, deployment
+- [Plan triển khai](docs/plan.md) — lộ trình develop: thứ tự, song song, phụ thuộc, milestones
+- [Spec](docs/spec/) — spec chi tiết từng màn hình & nghiệp vụ (đầu bài implement)
 
 ## Coding Rules
 
