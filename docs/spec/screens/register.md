@@ -93,7 +93,7 @@ File: `src/app/(auth)/register/actions.ts` (`"use server"`), export `registerOwn
    `auth.api.signUpEmail({ body: { name, email, password, role: "owner" }, headers: await headers() })`.
    - `headers` lấy từ `next/headers` (để Better Auth set cookie session).
    - `role` truyền được nhờ khai báo `additionalFields.role` với `input: true` (xem mục 8.1).
-   - Better Auth tự **tạo session (đăng nhập ngay)** sau signup.
+   - Better Auth tự **tạo session (đăng nhập ngay)** sau signup — session này theo **chính sách session chung** (30 ngày, sliding 7 ngày; xem mục 8.1).
    - Email đã tồn tại → bắt lỗi, trả `{ success:false, code:"CONFLICT", error:"Email đã được sử dụng." }`.
 4. Lỗi không lường trước → `console.error(...)` + `{ success:false, code:"INTERNAL_ERROR", error:"Có lỗi xảy ra, thử lại sau." }`.
 5. Thành công → `{ success:true, data: undefined }`.
@@ -124,6 +124,15 @@ File: `src/app/(auth)/register/actions.ts` (`"use server"`), export `registerOwn
    } } }
    ```
    `input: true` cho phép truyền `role` vào `signUpEmail` (register set `"owner"`). Các nơi khác tạo user mặc định `"member"`.
+
+   **Chính sách session (dùng chung cho mọi đường tạo session — register auto-login & login):**
+   ```ts
+   session: {
+     expiresIn: 60 * 60 * 24 * 30, // 30 ngày — tuổi thọ tối đa
+     updateAge: 60 * 60 * 24 * 7,  // 7 ngày — sliding: gia hạn khi hoạt động
+     cookieCache: { enabled: true, maxAge: 60 * 5 }, // cache 5 phút, giảm query DB
+   }
+   ```
 2. **`src/db/schema.ts`** — định nghĩa bảng `users` (+ các bảng Better Auth: session, account, verification) kèm cột `role`.
 3. **`ownerExists()`** — `src/queries/users.ts`.
 4. Liên quan: `/login` (đích điều hướng), `/settings/users` (nơi tạo member).
