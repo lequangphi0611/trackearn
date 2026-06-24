@@ -9,6 +9,24 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U trackearn"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://trackearn:trackearn@db:5432/trackearn
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-change-me-in-development}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
 
 volumes:
   postgres_data:
