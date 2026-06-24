@@ -32,7 +32,9 @@ Không phát sinh dữ liệu mới — chỉ đọc & tổng hợp từ `transa
 
 ---
 
-## 3. Báo cáo tháng (`/reports`, owner only)
+## 3. Báo cáo theo kỳ (`/reports`, owner only)
+
+> Kỳ có thể là **tháng / quý / năm** (mặc định tháng), kèm **biểu đồ + xu hướng nhiều tháng** — chi tiết UI ở [screens/reports.md](screens/reports.md). Công thức dưới mô tả cho 1 kỳ.
 
 ### 3.1. So sánh doanh thu
 - Doanh thu tháng này vs tháng trước (Σ income theo tháng), kèm % thay đổi.
