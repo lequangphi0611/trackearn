@@ -54,6 +54,8 @@ transactions
   id, type (income | expense), amount, paid_amount
   business_line_id (nullable — NULL = chi phí chung), user_id
   category_id (nullable — chỉ dùng cho expense; NULL income)
+  source_kind (manual | repair_job | device_buy | device_sell)
+  source_id (nullable — id nguồn job/device; NULL khi manual)
   note, transacted_at
   payment_status (paid | partial | pending)
 

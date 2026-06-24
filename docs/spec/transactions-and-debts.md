@@ -27,6 +27,8 @@ Mọi luồng nghiệp vụ (bán device, job sửa xe, bán phụ kiện, chi p
 | `business_line_id` | fk, **nullable** | `xe_muc`/`thiet_bi`/`phu_kien`; NULL = chi phí chung |
 | `category_id` | fk → `expense_categories`, nullable | Chỉ expense; xem [expenses.md](./expenses.md) |
 | `user_id` | fk → user | Người nhập |
+| `source_kind` | enum `manual`\|`repair_job`\|`device_buy`\|`device_sell` | `manual` = nhập tay (sửa được); còn lại = tự sinh (khoá sửa) |
+| `source_id` | nullable | id bản ghi nguồn (job/device) để dựng link; NULL khi `manual` |
 | `note` | text | |
 | `transacted_at` | timestamp | Thời điểm phát sinh (mặc định now) |
 
