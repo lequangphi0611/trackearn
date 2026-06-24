@@ -46,6 +46,7 @@ Browser / PWA
 ```
 users
   id, email, name, role (owner | member), created_at
+  banned, ban_reason, ban_expires    -- khóa member (Better Auth admin plugin)
 
 business_lines
   id, name (xe_muc | thiet_bi | phu_kien)

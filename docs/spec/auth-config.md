@@ -42,12 +42,16 @@ export const auth = betterAuth({
     updateAge: 60 * 60 * 24,      // 1 ngày (sliding)
     cookieCache: { enabled: true, maxAge: 60 * 5 }, // cache 5 phút
   },
-  plugins: [nextCookies()], // PHẢI là plugin cuối — cho phép Server Action set cookie session
+  plugins: [
+    admin({ adminRoles: ["owner"] }), // quản lý người dùng (xem screens/settings.md)
+    nextCookies(),                    // PHẢI là plugin cuối
+  ],
 });
 ```
 
 **Điểm bắt buộc:**
 - `nextCookies()` **phải đứng cuối** mảng `plugins`. Thiếu nó → Server Action `signUpEmail`/`signInEmail` không set được cookie → đăng nhập "thành công" nhưng không có session.
+- **Admin plugin** (`better-auth/plugins`): cho owner quản lý member (`createUser`, `setUserPassword`, `banUser`/`unbanUser`, `removeUser`); bổ sung field `banned`/`banReason`/`banExpires` vào `user`. `adminRoles: ["owner"]` → owner là admin.
 - `minPasswordLength: 8` khớp validation màn register.
 - `role` dùng `input: true` để register truyền `role:"owner"`; mặc định `"member"`.
 
@@ -65,7 +69,7 @@ Bảng & cột tối thiểu (tóm tắt — CLI sinh chi tiết):
 
 | Bảng | Cột chính |
 |------|-----------|
-| `user` | `id`, `name`, `email` (unique), `emailVerified`, `image`, **`role`** (text, default `'member'`), `createdAt`, `updatedAt` |
+| `user` | `id`, `name`, `email` (unique), `emailVerified`, `image`, **`role`** (text, default `'member'`), **`banned`** (bool), **`banReason`**, **`banExpires`** (do admin plugin thêm), `createdAt`, `updatedAt` |
 | `session` | `id`, `userId`→user, `token`, `expiresAt`, `ipAddress`, `userAgent`, `createdAt`, `updatedAt` |
 | `account` | `id`, `userId`→user, `accountId`, `providerId`, `password` (hash), `createdAt`, `updatedAt` |
 | `verification` | `id`, `identifier`, `value`, `expiresAt`, `createdAt`, `updatedAt` |
