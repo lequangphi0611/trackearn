@@ -82,16 +82,23 @@ Validate **cả client (UX nhanh) và server (bắt buộc)**. Server là nguồ
 
 ## 6. Luồng xử lý — Server Action
 
-File: `src/app/(auth)/register/actions.ts` (`"use server"`), export `registerOwner(formData)` trả `ActionResult<void>`.
+File: `src/app/(auth)/register/actions.ts` (`"use server"`), export `registerOwner(prevState, formData)` trả `ActionResult<void>`. Client gọi qua `useActionState` (React 19) + `useFormStatus` cho trạng thái loading.
 
-1. Parse `FormData` qua Zod schema. Lỗi → `{ success:false, code:"VALIDATION_ERROR", fieldErrors }`.
+> **Shape `ActionResult<T>`** (đã có ở `src/lib/types.ts`):
+> `{ success:true; data:T } | { success:false; error:string; code:ErrorCode; fieldErrors?:Record<string,string[]> }`.
+
+1. Parse `FormData` qua Zod schema. Lỗi → `{ success:false, code:"VALIDATION_ERROR", error:"Dữ liệu không hợp lệ", fieldErrors }`.
 2. Gọi lại `ownerExists()` (chống race / bypass). Nếu `true` → `{ success:false, code:"AUTH_ERROR", error:"Đã có chủ tài khoản." }`.
-3. Tạo user qua Better Auth: `auth.api.signUpEmail({ body: { name, email, password }, headers })`.
+3. Tạo user **và gán role ngay trong 1 lần gọi** (đảm bảo atomic — không tách 2 bước):
+   `auth.api.signUpEmail({ body: { name, email, password, role: "owner" }, headers: await headers() })`.
+   - `headers` lấy từ `next/headers` (để Better Auth set cookie session).
+   - `role` truyền được nhờ khai báo `additionalFields.role` với `input: true` (xem mục 8.1).
    - Better Auth tự **tạo session (đăng nhập ngay)** sau signup.
    - Email đã tồn tại → bắt lỗi, trả `{ success:false, code:"CONFLICT", error:"Email đã được sử dụng." }`.
-4. Gán **role = "owner"** cho user vừa tạo (update bảng `users`).
-5. Lỗi không lường trước → log + `{ success:false, code:"INTERNAL_ERROR" }`.
-6. Thành công → `{ success:true }`. Client nhận kết quả → điều hướng `router.push("/")` (hoặc `redirect("/")` trong action).
+4. Lỗi không lường trước → `console.error(...)` + `{ success:false, code:"INTERNAL_ERROR", error:"Có lỗi xảy ra, thử lại sau." }`.
+5. Thành công → `{ success:true, data: undefined }`.
+
+> **Điều hướng:** action **không** `redirect()` (để client còn nhận `success` + cookie session đã set). Client component theo dõi kết quả `useActionState`, khi `success === true` thì `router.push("/")`.
 
 ---
 
@@ -110,7 +117,13 @@ File: `src/app/(auth)/register/actions.ts` (`"use server"`), export `registerOwn
 
 ## 8. Phụ thuộc (cần làm trước/kèm theo)
 
-1. **`role` cho user** — `src/lib/auth.ts` thêm `user.additionalFields.role` (`"owner" | "member"`, mặc định `"member"`); register set `"owner"`. *(Hoặc dùng admin plugin của Better Auth.)*
+1. **`role` cho user** — `src/lib/auth.ts` thêm `user.additionalFields.role`:
+   ```ts
+   user: { additionalFields: { role: {
+     type: "string", required: false, defaultValue: "member", input: true,
+   } } }
+   ```
+   `input: true` cho phép truyền `role` vào `signUpEmail` (register set `"owner"`). Các nơi khác tạo user mặc định `"member"`.
 2. **`src/db/schema.ts`** — định nghĩa bảng `users` (+ các bảng Better Auth: session, account, verification) kèm cột `role`.
 3. **`ownerExists()`** — `src/queries/users.ts`.
 4. Liên quan: `/login` (đích điều hướng), `/settings/users` (nơi tạo member).
