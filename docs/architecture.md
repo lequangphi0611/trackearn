@@ -52,8 +52,13 @@ business_lines
 
 transactions
   id, type (income | expense), amount, paid_amount
-  business_line_id, user_id, note, transacted_at
+  business_line_id (nullable — NULL = chi phí chung), user_id
+  category_id (nullable — chỉ dùng cho expense; NULL income)
+  note, transacted_at
   payment_status (paid | partial | pending)
+
+expense_categories               -- danh mục chi phí (seed sẵn, có 'other')
+  id, name, slug, is_system, sort_order
 
 debts
   id, transaction_id, debtor_name, total, paid, due_date, settled_at
@@ -79,6 +84,7 @@ repair_job_parts                 -- phụ tùng xuất cho mỗi job
 - Mỗi `repair_job` sinh ra 1 `transaction` (income)
 - Mỗi `device` bán ra sinh ra 1 `transaction` (income); mua vào sinh ra 1 `transaction` (expense)
 - `debts` gắn với `transaction` khi `payment_status != paid` — áp dụng cho **mọi mảng** (xe múc, thiết bị điện tử, phụ kiện), không chỉ riêng xe múc
+- `transactions` ghi cả **chi phí vận hành** (điện, thuê mặt bằng…) qua `category_id`, không chỉ chi phí vốn; chi phí dùng chung 3 mảng để `business_line_id = NULL` — xem [spec/expenses.md](spec/expenses.md)
 
 ---
 
