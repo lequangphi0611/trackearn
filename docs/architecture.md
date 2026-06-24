@@ -46,17 +46,27 @@ Browser / PWA
 ```
 users
   id, email, name, role (owner | member), created_at
+  banned, ban_reason, ban_expires    -- khóa member (Better Auth admin plugin)
 
 business_lines
   id, name (xe_muc | thiet_bi | phu_kien)
 
 transactions
   id, type (income | expense), amount, paid_amount
-  business_line_id, user_id, note, transacted_at
+  business_line_id (nullable — NULL = chi phí chung), user_id
+  category_id (nullable — chỉ dùng cho expense; NULL income)
+  source_kind (manual | repair_job | device_buy | device_sell)
+  source_id (nullable — id nguồn job/device; NULL khi manual)
+  note, transacted_at (ngày giao dịch, sửa được)
   payment_status (paid | partial | pending)
+  created_at, updated_at, updated_by   -- audit: ai tạo/sửa lúc nào
+
+expense_categories               -- danh mục chi phí (seed sẵn, có 'other')
+  id, name, slug, is_system, sort_order
 
 debts
-  id, transaction_id, debtor_name, total, paid, due_date, settled_at
+  id, transaction_id, direction (receivable | payable)
+  counterparty_name, total, paid, due_date, settled_at
 
 devices                          -- kho thiết bị điện tử
   id, name, condition_note
@@ -65,7 +75,7 @@ devices                          -- kho thiết bị điện tử
   status (in_stock | sold)
 
 spare_parts                      -- kho phụ tùng xe múc
-  id, name, unit, quantity, buy_price
+  id, name, unit, quantity, buy_price, min_quantity
 
 repair_jobs                      -- job sửa xe múc
   id, customer_name, labor_fee, note, job_date
@@ -73,12 +83,14 @@ repair_jobs                      -- job sửa xe múc
 
 repair_job_parts                 -- phụ tùng xuất cho mỗi job
   id, job_id, spare_part_id, quantity, unit_price
+  cost_price                     -- giá vốn chụp lúc xuất (tính lãi)
 ```
 
 **Quan hệ quan trọng:**
 - Mỗi `repair_job` sinh ra 1 `transaction` (income)
 - Mỗi `device` bán ra sinh ra 1 `transaction` (income); mua vào sinh ra 1 `transaction` (expense)
 - `debts` gắn với `transaction` khi `payment_status != paid` — áp dụng cho **mọi mảng** (xe múc, thiết bị điện tử, phụ kiện), không chỉ riêng xe múc
+- `transactions` ghi cả **chi phí vận hành** (điện, thuê mặt bằng…) qua `category_id`, không chỉ chi phí vốn; chi phí dùng chung 3 mảng để `business_line_id = NULL` — xem [spec/expenses.md](spec/expenses.md)
 
 ---
 
