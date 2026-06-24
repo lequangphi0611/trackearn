@@ -68,14 +68,15 @@ Form (client component) → Server Action `createTransaction` trả `ActionResul
   - **Dùng chung một logic bán máy** với dialog "Bán ra" ở [devices.md](./devices.md) (cùng 1 hàm/Server Action, KHÔNG viết 2 code path) để 2 lối vào luôn cho kết quả giống hệt.
   - **Chống bán trùng**: kiểm tra lại device còn `in_stock` tại thời điểm lưu; nếu đã `sold` → trả lỗi `CONFLICT`.
   - Để trống → thu lẻ (sửa chữa nhỏ / phụ kiện lẻ), `source_kind = manual`.
-- Lưu: validate Zod → tạo transaction; `paid_amount < amount` → sinh **công nợ** (xem [transactions-and-debts.md](../transactions-and-debts.md)). Thành công → về danh sách + revalidate.
+- Lưu: validate Zod → tạo transaction; **tự gán** `user_id` = người đăng nhập (người tạo) và `created_at` = now (audit, server set — không nhận từ client). `paid_amount < amount` → sinh **công nợ** (xem [transactions-and-debts.md](../transactions-and-debts.md)). Thành công → về danh sách + revalidate.
 - **Trả dư không nhập ở đây** (paid ≤ amount); tip xử lý ở luồng ghi nhận trả nợ / khoản thu riêng.
 
 ---
 
 ## 5. Màn chi tiết / sửa (`/transactions/<mảng>/[id]`)
 
-- **Giao dịch nhập tay** (`source_kind = manual`): cho **sửa** (cập nhật amount/paid/category/note… → tính lại `payment_status`, đồng bộ công nợ); cho **xoá** trừ khi đã có công nợ trả dở (**chặn nếu `debt.paid > 0`** — xem [transactions-and-debts.md](../transactions-and-debts.md)).
+- Hiển thị **người tạo** (`user_id`) + **mốc tạo** (`created_at`); nếu đã sửa, hiện **người sửa gần nhất** (`updated_by`) + `updated_at`.
+- **Giao dịch nhập tay** (`source_kind = manual`): cho **sửa** (cập nhật amount/paid/category/note… → tính lại `payment_status`, đồng bộ công nợ; **set `updated_at` = now, `updated_by` = người đăng nhập**); cho **xoá** trừ khi đã có công nợ trả dở (**chặn nếu `debt.paid > 0`** — xem [transactions-and-debts.md](../transactions-and-debts.md)).
 - **Giao dịch tự sinh** (`source_kind != manual`): **chỉ đọc**; hiển thị banner "Giao dịch này sinh từ <nguồn>" + nút mở màn nguồn (job/device). Mọi chỉnh sửa thực hiện ở nguồn.
 
 ---

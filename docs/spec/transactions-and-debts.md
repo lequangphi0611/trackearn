@@ -26,11 +26,18 @@ Mọi luồng nghiệp vụ (bán device, job sửa xe, bán phụ kiện, chi p
 | `payment_status` | enum `paid` \| `partial` \| `pending` | **Suy ra** từ `paid_amount` (mục 3.1) |
 | `business_line_id` | fk, **nullable** | `xe_muc`/`thiet_bi`/`phu_kien`; NULL = chi phí chung |
 | `category_id` | fk → `expense_categories`, nullable | Chỉ expense; xem [expenses.md](./expenses.md) |
-| `user_id` | fk → user | Người nhập |
+| `user_id` | fk → user, **NOT NULL** | **Người tạo** (người nhập / thực hiện); giao dịch tự sinh = người thao tác nguồn (tạo job / bán máy) |
 | `source_kind` | enum `manual`\|`repair_job`\|`device_buy`\|`device_sell` | `manual` = nhập tay (sửa được); còn lại = tự sinh (khoá sửa) |
 | `source_id` | nullable | id bản ghi nguồn (job/device) để dựng link; NULL khi `manual` |
 | `note` | text | |
-| `transacted_at` | timestamp | Thời điểm phát sinh (mặc định now) |
+| `transacted_at` | timestamp | **Ngày giao dịch** (thời điểm phát sinh; mặc định now nhưng **sửa được** — vd nhập lùi ngày) |
+| `created_at` | timestamp | **Mốc tạo bản ghi** (audit, **không sửa**, mặc định now) — khác `transacted_at` |
+| `updated_at` | timestamp | Mốc sửa gần nhất (cập nhật mỗi lần sửa) |
+| `updated_by` | fk → user, nullable | Người sửa gần nhất; NULL nếu chưa sửa lần nào |
+
+> **`transacted_at` vs `created_at`**: `transacted_at` là ngày *nghiệp vụ* của giao dịch (có thể lùi về quá khứ); `created_at` là mốc *thực tế* bản ghi được tạo trong hệ thống (audit, bất biến). Báo cáo/lọc theo ngày dùng `transacted_at`; truy vết "ai tạo lúc nào" dùng `user_id` + `created_at`.
+> Quy ước audit (`created_at`/`updated_at`/`updated_by`) áp dụng tương tự cho các bảng nghiệp vụ khác (devices, repair_jobs, spare_parts, debts…).
+> **Chi tiết audit:** lúc tạo, `updated_at = created_at` và `updated_by = NULL`. Mọi thao tác làm đổi bản ghi — kể cả **ghi nhận trả nợ** (đổi `paid_amount`/`payment_status`) — đều set `updated_at = now`, `updated_by` = người thực hiện. Giao dịch tự sinh: `created_at = now` lúc tạo job/bán máy.
 
 ### 2.2. `debts`
 

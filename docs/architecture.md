@@ -57,8 +57,9 @@ transactions
   category_id (nullable — chỉ dùng cho expense; NULL income)
   source_kind (manual | repair_job | device_buy | device_sell)
   source_id (nullable — id nguồn job/device; NULL khi manual)
-  note, transacted_at
+  note, transacted_at (ngày giao dịch, sửa được)
   payment_status (paid | partial | pending)
+  created_at, updated_at, updated_by   -- audit: ai tạo/sửa lúc nào
 
 expense_categories               -- danh mục chi phí (seed sẵn, có 'other')
   id, name, slug, is_system, sort_order
