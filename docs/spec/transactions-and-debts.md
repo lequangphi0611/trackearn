@@ -68,6 +68,19 @@ Mọi luồng nghiệp vụ (bán device, job sửa xe, bán phụ kiện, chi p
 
 > **Giao dịch trả đủ ngay** (không sinh debt): chỉ tồn tại `transaction.paid_amount` (= `amount`); không có gì để đồng bộ. Quy tắc "`debt.paid` là nguồn chân lý" chỉ áp dụng khi **có** công nợ.
 
+### 3.4. Trả dư / tip / trả thêm
+Khi khách đưa **nhiều hơn** số phải trả (tip, hoặc trả thêm cho dịch vụ nhỏ không itemize):
+- Mỗi giao dịch vẫn giữ ràng buộc `paid_amount <= amount` (không có overpayment trên 1 giao dịch).
+- Phần dư được ghi thành **một transaction income RIÊNG**: `amount` = phần dư, trả đủ ngay (`paid_amount = amount`, không sinh công nợ).
+- `business_line_id` của khoản thu thêm = **mảng của giao dịch gốc**; `note` nên ghi rõ "tip / trả thêm".
+- **Không** phân loại riêng trong báo cáo — gộp chung vào income của mảng (xem [reports.md](./reports.md)).
+
+**Phạm vi & chi tiết:**
+- Chỉ áp dụng cho khoản **khách trả mình** (giao dịch income). Expense (mình trả NCC) không có khái niệm tip.
+- Phát sinh ở **2 thời điểm**: (a) lúc tạo giao dịch khách đưa dư ngay; (b) lúc **ghi nhận trả nợ** mà khách trả nhiều hơn phần còn lại (`debt.total − debt.paid`) → phần vượt thành khoản thu riêng (tip), công nợ tất toán đúng `total`.
+- Khoản tip kế thừa `user_id` (người ghi) và `transacted_at` (thời điểm thao tác); `category_id = NULL` (income).
+- Truy vết: MVP **không** thêm FK tới giao dịch gốc — ghi ngữ cảnh ở `note`. Có thể thêm `parent_transaction_id` sau nếu cần đối soát.
+
 ---
 
 ## 4. Nhập liệu
@@ -100,12 +113,13 @@ Mọi luồng nghiệp vụ (bán device, job sửa xe, bán phụ kiện, chi p
 - [ ] Income trả sau → debt `receivable`; expense trả sau → debt `payable`.
 - [ ] Ghi nhận trả nợ tới khi đủ → `settled_at` được set, `payment_status=paid`.
 - [ ] `payment_status` luôn khớp `paid_amount`, không bao giờ nhập tay lệch.
+- [ ] Khách trả dư → giao dịch gốc vẫn `paid_amount = amount`; phần dư thành 1 income riêng (tip) đúng mảng giao dịch gốc.
 
 ---
 
 ## 8. Quyết định đã chốt
 
-1. **Trả dư**: **không** cho `paid_amount > amount` — chặn ở validate.
+1. **Trả dư / tip**: trên mỗi giao dịch giữ `paid_amount <= amount`; khách đưa dư → ghi **khoản thu riêng** (tip), gắn mảng theo giao dịch gốc, gộp chung income (mục 3.4).
 2. **Xoá giao dịch đã có công nợ đang trả dở**: **chặn nếu `debt.paid > 0`** (kèm cảnh báo).
 3. **Lịch sử trả nợ**: **chỉ lưu tổng `debt.paid`**, không tách bảng `debt_payments` ở giai đoạn này.
 4. Ràng buộc: `0 <= paid <= total`; "quá hạn" = `due_date < hôm nay` và chưa `settled_at`.
