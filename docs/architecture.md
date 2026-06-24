@@ -61,7 +61,8 @@ expense_categories               -- danh mục chi phí (seed sẵn, có 'other'
   id, name, slug, is_system, sort_order
 
 debts
-  id, transaction_id, debtor_name, total, paid, due_date, settled_at
+  id, transaction_id, direction (receivable | payable)
+  counterparty_name, total, paid, due_date, settled_at
 
 devices                          -- kho thiết bị điện tử
   id, name, condition_note
