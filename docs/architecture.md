@@ -73,7 +73,7 @@ devices                          -- kho thiết bị điện tử
   status (in_stock | sold)
 
 spare_parts                      -- kho phụ tùng xe múc
-  id, name, unit, quantity, buy_price
+  id, name, unit, quantity, buy_price, min_quantity
 
 repair_jobs                      -- job sửa xe múc
   id, customer_name, labor_fee, note, job_date
@@ -81,6 +81,7 @@ repair_jobs                      -- job sửa xe múc
 
 repair_job_parts                 -- phụ tùng xuất cho mỗi job
   id, job_id, spare_part_id, quantity, unit_price
+  cost_price                     -- giá vốn chụp lúc xuất (tính lãi)
 ```
 
 **Quan hệ quan trọng:**
