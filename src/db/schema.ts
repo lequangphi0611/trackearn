@@ -8,6 +8,7 @@ import {
   uuid,
   bigint,
   integer,
+  numeric,
   date,
 } from "drizzle-orm/pg-core";
 
@@ -22,7 +23,7 @@ export const user = pgTable("user", {
     .defaultNow()
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
-  role: text("role").default("member"),
+  role: text("role").default("member").notNull(),
   banned: boolean("banned").default(false),
   banReason: text("ban_reason"),
   banExpires: timestamp("ban_expires"),
@@ -136,7 +137,7 @@ export const transactions = pgTable(
     sourceKind: text("source_kind").default("manual").notNull(), // manual | repair_job | device_buy | device_sell
     sourceId: uuid("source_id"),
     note: text("note"),
-    transactedAt: timestamp("transacted_at").notNull(),
+    transactedAt: timestamp("transacted_at").defaultNow().notNull(),
     paymentStatus: text("payment_status").notNull(), // paid | partial | pending
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
@@ -152,22 +153,20 @@ export const transactions = pgTable(
   ],
 );
 
-export const debts = pgTable(
-  "debts",
-  {
-    id: uuid("id").defaultRandom().primaryKey(),
-    transactionId: uuid("transaction_id")
-      .notNull()
-      .references(() => transactions.id, { onDelete: "cascade" }),
-    direction: text("direction").notNull(), // receivable | payable
-    counterpartyName: text("counterparty_name").notNull(),
-    total: bigint("total", { mode: "number" }).notNull(),
-    paid: bigint("paid", { mode: "number" }).default(0).notNull(),
-    dueDate: date("due_date"),
-    settledAt: timestamp("settled_at"),
-  },
-  (table) => [index("debts_transaction_id_idx").on(table.transactionId)],
-);
+export const debts = pgTable("debts", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  // unique: 1 giao dịch ↔ tối đa 1 công nợ (auto-tạo index, không cần index riêng).
+  transactionId: uuid("transaction_id")
+    .notNull()
+    .unique()
+    .references(() => transactions.id, { onDelete: "cascade" }),
+  direction: text("direction").notNull(), // receivable | payable
+  counterpartyName: text("counterparty_name").notNull(),
+  total: bigint("total", { mode: "number" }).notNull(),
+  paid: bigint("paid", { mode: "number" }).default(0).notNull(),
+  dueDate: date("due_date"),
+  settledAt: timestamp("settled_at"),
+});
 
 export const devices = pgTable("devices", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -179,15 +178,21 @@ export const devices = pgTable("devices", {
   sellPrice: bigint("sell_price", { mode: "number" }),
   sellDate: date("sell_date"),
   status: text("status").default("in_stock").notNull(), // in_stock | sold
+  // Liên kết tới giao dịch tự sinh (chi khi mua / thu khi bán) — xem spec/devices.md.
+  buyTransactionId: uuid("buy_transaction_id").references(() => transactions.id),
+  sellTransactionId: uuid("sell_transaction_id").references(() => transactions.id),
 });
 
 export const spareParts = pgTable("spare_parts", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
   unit: text("unit").notNull(),
-  quantity: integer("quantity").default(0).notNull(),
+  // numeric: cho phép đơn vị lẻ (vd lít dầu). buy_price là tiền (bigint đồng).
+  quantity: numeric("quantity", { precision: 14, scale: 3 }).default("0").notNull(),
   buyPrice: bigint("buy_price", { mode: "number" }).notNull(),
-  minQuantity: integer("min_quantity").default(0).notNull(),
+  minQuantity: numeric("min_quantity", { precision: 14, scale: 3 })
+    .default("0")
+    .notNull(),
 });
 
 export const repairJobs = pgTable("repair_jobs", {
@@ -209,7 +214,7 @@ export const repairJobParts = pgTable(
     sparePartId: uuid("spare_part_id")
       .notNull()
       .references(() => spareParts.id),
-    quantity: integer("quantity").notNull(),
+    quantity: numeric("quantity", { precision: 14, scale: 3 }).notNull(),
     unitPrice: bigint("unit_price", { mode: "number" }).notNull(),
     costPrice: bigint("cost_price", { mode: "number" }).notNull(), // giá vốn lúc xuất
   },

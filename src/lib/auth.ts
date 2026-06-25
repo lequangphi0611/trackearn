@@ -24,6 +24,7 @@ export const auth = betterAuth({
     // adminRoles phải khai báo trong `roles` qua access control).
     admin({
       adminRoles: ["owner"],
+      defaultRole: "member", // member do owner tạo mặc định role "member" (không phải "user")
       roles: { owner: adminAc, member: userAc },
     }),
     nextCookies(), // PHẢI là plugin cuối cùng

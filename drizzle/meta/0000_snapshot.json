@@ -1,5 +1,5 @@
 {
-  "id": "670ee4cf-73ac-4978-9c11-689a241bf184",
+  "id": "e2969b90-b7ff-4dc0-bdab-2258fe30d72b",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -181,23 +181,7 @@
           "notNull": false
         }
       },
-      "indexes": {
-        "debts_transaction_id_idx": {
-          "name": "debts_transaction_id_idx",
-          "columns": [
-            {
-              "expression": "transaction_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
+      "indexes": {},
       "foreignKeys": {
         "debts_transaction_id_transactions_id_fk": {
           "name": "debts_transaction_id_transactions_id_fk",
@@ -214,7 +198,15 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "debts_transaction_id_unique": {
+          "name": "debts_transaction_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "transaction_id"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -278,10 +270,49 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'in_stock'"
+        },
+        "buy_transaction_id": {
+          "name": "buy_transaction_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sell_transaction_id": {
+          "name": "sell_transaction_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "devices_buy_transaction_id_transactions_id_fk": {
+          "name": "devices_buy_transaction_id_transactions_id_fk",
+          "tableFrom": "devices",
+          "tableTo": "transactions",
+          "columnsFrom": [
+            "buy_transaction_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "devices_sell_transaction_id_transactions_id_fk": {
+          "name": "devices_sell_transaction_id_transactions_id_fk",
+          "tableFrom": "devices",
+          "tableTo": "transactions",
+          "columnsFrom": [
+            "sell_transaction_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -367,7 +398,7 @@
         },
         "quantity": {
           "name": "quantity",
-          "type": "integer",
+          "type": "numeric(14, 3)",
           "primaryKey": false,
           "notNull": true
         },
@@ -646,10 +677,10 @@
         },
         "quantity": {
           "name": "quantity",
-          "type": "integer",
+          "type": "numeric(14, 3)",
           "primaryKey": false,
           "notNull": true,
-          "default": 0
+          "default": "'0'"
         },
         "buy_price": {
           "name": "buy_price",
@@ -659,10 +690,10 @@
         },
         "min_quantity": {
           "name": "min_quantity",
-          "type": "integer",
+          "type": "numeric(14, 3)",
           "primaryKey": false,
           "notNull": true,
-          "default": 0
+          "default": "'0'"
         }
       },
       "indexes": {},
@@ -744,7 +775,8 @@
           "name": "transacted_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "now()"
         },
         "payment_status": {
           "name": "payment_status",
@@ -920,7 +952,7 @@
           "name": "role",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "default": "'member'"
         },
         "banned": {
