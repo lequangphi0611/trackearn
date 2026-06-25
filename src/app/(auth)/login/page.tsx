@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
+import { getCurrentSession } from "@/queries/session";
 import { ownerExists } from "@/queries/users";
 import {
   Card,
@@ -9,14 +8,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { LoginForm } from "./login-form";
+import { LoginForm } from "./LoginForm";
 
 export default async function LoginPage({
   searchParams,
 }: {
   searchParams: Promise<{ callbackURL?: string }>;
 }) {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getCurrentSession();
   if (session) redirect("/");
 
   const { callbackURL } = await searchParams;

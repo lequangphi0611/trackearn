@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
 import Link from "next/link";
-import { auth } from "@/lib/auth";
+import { getCurrentSession } from "@/queries/session";
 import { DashboardNav } from "./components/DashboardNav";
 import { SignOutButton } from "./components/SignOutButton";
 
@@ -10,8 +9,8 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Defense-in-depth ngoài middleware: xác thực session thật khi render.
-  const session = await auth.api.getSession({ headers: await headers() });
+  // Defense-in-depth ngoài proxy: xác thực session thật khi render.
+  const session = await getCurrentSession();
   if (!session) redirect("/login");
 
   const role = session.user.role ?? "member";

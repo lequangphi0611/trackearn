@@ -1,8 +1,7 @@
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
+import { getCurrentSession } from "@/queries/session";
 
 export default async function DashboardPage() {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getCurrentSession();
   const name = session?.user.name ?? "";
 
   return (

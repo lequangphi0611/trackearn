@@ -3,9 +3,9 @@
 import { useActionState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Field } from "@/components/forms/Field";
 import { SubmitButton } from "@/components/forms/SubmitButton";
+import { getFormError } from "@/lib/form";
 import { updateProfile } from "./actions";
 
 export function ProfileForm({ defaultName }: { defaultName: string }) {
@@ -21,19 +21,17 @@ export function ProfileForm({ defaultName }: { defaultName: string }) {
     }
   }, [state, router]);
 
-  const nameError = state && !state.success ? state.fieldErrors?.name?.[0] : undefined;
+  const { fieldErrors } = getFormError(state);
 
   return (
     <form action={formAction} className="flex flex-col gap-1.5">
-      <Label htmlFor="name">Họ tên</Label>
-      <Input
-        id="name"
+      <Field
+        label="Họ tên"
         name="name"
         defaultValue={defaultName}
         required
-        aria-invalid={Boolean(nameError)}
+        error={fieldErrors?.name?.[0]}
       />
-      {nameError && <p className="text-xs text-destructive">{nameError}</p>}
       <div className="mt-2">
         <SubmitButton size="sm">Lưu thay đổi</SubmitButton>
       </div>

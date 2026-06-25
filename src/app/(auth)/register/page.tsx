@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
 import Link from "next/link";
-import { auth } from "@/lib/auth";
+import { getCurrentSession } from "@/queries/session";
 import { ownerExists } from "@/queries/users";
 import {
   Card,
@@ -11,10 +10,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
-import { RegisterForm } from "./register-form";
+import { RegisterForm } from "./RegisterForm";
 
 export default async function RegisterPage() {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getCurrentSession();
   if (session) redirect("/");
 
   const hasOwner = await ownerExists();

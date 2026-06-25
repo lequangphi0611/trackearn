@@ -1,14 +1,13 @@
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
+import { getCurrentSession } from "@/queries/session";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ProfileForm } from "./profile-form";
-import { PasswordForm } from "./password-form";
+import { ProfileForm } from "./ProfileForm";
+import { PasswordForm } from "./PasswordForm";
 
 const ROLE_LABELS: Record<string, string> = {
   owner: "Chủ hộ",
@@ -16,7 +15,7 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 export default async function SettingsPage() {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getCurrentSession();
   if (!session) redirect("/login");
 
   const { name, email, role } = session.user;
