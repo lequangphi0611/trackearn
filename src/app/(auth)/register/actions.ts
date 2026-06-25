@@ -5,7 +5,7 @@ import { APIError } from "better-auth/api";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { ownerExists } from "@/queries/users";
-import type { ActionResult } from "@/lib/types";
+import { ErrorCode, type ActionResult } from "@/lib/types";
 import { registerSchema } from "./schema";
 
 export async function registerOwner(
@@ -22,7 +22,7 @@ export async function registerOwner(
   if (!parsed.success) {
     return {
       success: false,
-      code: "VALIDATION_ERROR",
+      code: ErrorCode.VALIDATION_ERROR,
       error: "Dữ liệu không hợp lệ",
       fieldErrors: z.flattenError(parsed.error).fieldErrors as Record<string, string[]>,
     };
@@ -30,7 +30,7 @@ export async function registerOwner(
 
   // Chống race/bypass: kiểm tra lại trước khi tạo owner.
   if (await ownerExists()) {
-    return { success: false, code: "AUTH_ERROR", error: "Đã có chủ tài khoản." };
+    return { success: false, code: ErrorCode.AUTH_ERROR, error: "Đã có chủ tài khoản." };
   }
 
   const { name, email, password } = parsed.data;
@@ -43,10 +43,10 @@ export async function registerOwner(
     });
   } catch (err) {
     if (err instanceof APIError) {
-      return { success: false, code: "CONFLICT", error: "Email đã được sử dụng." };
+      return { success: false, code: ErrorCode.CONFLICT, error: "Email đã được sử dụng." };
     }
     console.error("[registerOwner]", err);
-    return { success: false, code: "INTERNAL_ERROR", error: "Có lỗi xảy ra, thử lại sau." };
+    return { success: false, code: ErrorCode.INTERNAL_ERROR, error: "Có lỗi xảy ra, thử lại sau." };
   }
 
   return { success: true, data: undefined };

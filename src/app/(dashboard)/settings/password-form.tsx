@@ -1,24 +1,12 @@
 "use client";
 
 import { useActionState, useEffect, useRef } from "react";
-import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { SubmitButton } from "@/components/forms/SubmitButton";
 import { changePassword } from "./actions";
-
-function SubmitButton() {
-  const { pending } = useFormStatus();
-  return (
-    <Button type="submit" size="sm" disabled={pending} className="self-start">
-      {pending && <Loader2 className="animate-spin" />}
-      Đổi mật khẩu
-    </Button>
-  );
-}
 
 export function PasswordForm() {
   const formRef = useRef<HTMLFormElement>(null);
@@ -86,7 +74,9 @@ export function PasswordForm() {
         )}
       </div>
 
-      <SubmitButton />
+      <SubmitButton size="sm" className="self-start">
+        Đổi mật khẩu
+      </SubmitButton>
     </form>
   );
 }

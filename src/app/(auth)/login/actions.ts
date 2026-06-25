@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { APIError } from "better-auth/api";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
-import type { ActionResult } from "@/lib/types";
+import { ErrorCode, type ActionResult } from "@/lib/types";
 import { loginSchema } from "./schema";
 
 // Chỉ chấp nhận path nội bộ → chống open redirect.
@@ -30,7 +30,7 @@ export async function login(
   if (!parsed.success) {
     return {
       success: false,
-      code: "VALIDATION_ERROR",
+      code: ErrorCode.VALIDATION_ERROR,
       error: "Dữ liệu không hợp lệ",
       fieldErrors: z.flattenError(parsed.error).fieldErrors as Record<string, string[]>,
     };
@@ -48,12 +48,12 @@ export async function login(
       // Sai thông tin đăng nhập — thông báo chung, không tiết lộ sai cái nào.
       return {
         success: false,
-        code: "AUTH_ERROR",
+        code: ErrorCode.AUTH_ERROR,
         error: "Email hoặc mật khẩu không đúng.",
       };
     }
     console.error("[login]", err);
-    return { success: false, code: "INTERNAL_ERROR", error: "Có lỗi xảy ra, thử lại sau." };
+    return { success: false, code: ErrorCode.INTERNAL_ERROR, error: "Có lỗi xảy ra, thử lại sau." };
   }
 
   return { success: true, data: { redirectTo } };

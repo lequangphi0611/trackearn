@@ -1,24 +1,12 @@
 "use client";
 
 import { useActionState, useEffect } from "react";
-import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SubmitButton } from "@/components/forms/SubmitButton";
 import { updateProfile } from "./actions";
-
-function SubmitButton() {
-  const { pending } = useFormStatus();
-  return (
-    <Button type="submit" size="sm" disabled={pending} className="self-start">
-      {pending && <Loader2 className="animate-spin" />}
-      Lưu thay đổi
-    </Button>
-  );
-}
 
 export function ProfileForm({ defaultName }: { defaultName: string }) {
   const router = useRouter();
@@ -47,7 +35,7 @@ export function ProfileForm({ defaultName }: { defaultName: string }) {
       />
       {nameError && <p className="text-xs text-destructive">{nameError}</p>}
       <div className="mt-2">
-        <SubmitButton />
+        <SubmitButton size="sm">Lưu thay đổi</SubmitButton>
       </div>
     </form>
   );

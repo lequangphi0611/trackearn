@@ -1,25 +1,13 @@
 "use client";
 
 import { useActionState, useEffect } from "react";
-import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { SubmitButton } from "@/components/forms/SubmitButton";
 import { login } from "./actions";
-
-function SubmitButton() {
-  const { pending } = useFormStatus();
-  return (
-    <Button type="submit" size="lg" className="w-full" disabled={pending}>
-      {pending && <Loader2 className="animate-spin" />}
-      Đăng nhập
-    </Button>
-  );
-}
 
 export function LoginForm({
   callbackURL,
@@ -77,7 +65,9 @@ export function LoginForm({
         )}
       </div>
 
-      <SubmitButton />
+      <SubmitButton size="lg" fullWidth>
+        Đăng nhập
+      </SubmitButton>
 
       {showRegister && (
         <p className="text-center text-sm text-muted-foreground">
