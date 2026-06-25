@@ -3,7 +3,7 @@ import { getSessionCookie } from "better-auth/cookies";
 
 const AUTH_ROUTES = ["/login", "/register"];
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
   // Optimistic: chỉ kiểm tra sự tồn tại của cookie session, KHÔNG query DB ở edge.
   // Xác thực thật (và phân quyền role) do server component đảm nhận khi render.
