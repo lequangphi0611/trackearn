@@ -5,6 +5,7 @@ import type { DebtDirection } from "@/lib/payment";
 import { vnTodayISODate } from "@/lib/date";
 
 export const DEBTS_PAGE_SIZE = 20;
+const MAX_PAGE = 50; // chặn trần load-more tránh tải vô hạn
 
 export type DebtStatusFilter = "unsettled" | "settled" | "all";
 
@@ -29,7 +30,7 @@ export async function getDebtRemainingTotal(direction: DebtDirection): Promise<n
 
 /** Danh sách công nợ theo tab/chiều + lọc; sắp quá hạn/gần hạn lên trước. */
 export async function getDebts(f: DebtFilters) {
-  const page = f.page ?? 0;
+  const page = Math.min(f.page ?? 0, MAX_PAGE);
   const take = (page + 1) * DEBTS_PAGE_SIZE; // load-more tích luỹ
   const status = f.status ?? "unsettled";
   const today = vnTodayISODate();

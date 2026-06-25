@@ -2,13 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
-import { z } from "zod";
 import { db } from "@/db";
 import { debts, expenseCategories, transactions } from "@/db/schema";
 import { getCurrentSession } from "@/queries/session";
-import { ErrorCode, type ActionError, type ActionResult } from "@/lib/types";
+import { ErrorCode, type ActionResult } from "@/lib/types";
 import { derivePaymentStatus, deriveDirection, type TransactionType } from "@/lib/payment";
 import { vnLocalToInstant } from "@/lib/date";
+import { zodActionError } from "@/lib/form";
 import { getTransactionLine } from "@/lib/transaction-lines";
 import {
   createTransactionSchema,
@@ -17,15 +17,6 @@ import {
 } from "./schema";
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
-
-function validationError(error: z.ZodError): ActionError {
-  return {
-    success: false,
-    code: ErrorCode.VALIDATION_ERROR,
-    error: "Dữ liệu không hợp lệ",
-    fieldErrors: z.flattenError(error).fieldErrors as Record<string, string[]>,
-  };
-}
 
 async function resolveExpenseCategory(
   tx: Tx,
@@ -50,7 +41,7 @@ export async function createTransaction(
   if (!session) return { success: false, code: ErrorCode.AUTH_ERROR, error: "Chưa đăng nhập." };
 
   const parsed = createTransactionSchema.safeParse(Object.fromEntries(formData));
-  if (!parsed.success) return validationError(parsed.error);
+  if (!parsed.success) return zodActionError(parsed.error);
 
   const data = parsed.data;
   const lineConfig = getTransactionLine(data.line);
@@ -113,7 +104,7 @@ export async function updateTransaction(
   if (!session) return { success: false, code: ErrorCode.AUTH_ERROR, error: "Chưa đăng nhập." };
 
   const parsed = updateTransactionSchema.safeParse(Object.fromEntries(formData));
-  if (!parsed.success) return validationError(parsed.error);
+  if (!parsed.success) return zodActionError(parsed.error);
   const data = parsed.data;
 
   try {
@@ -209,7 +200,7 @@ export async function deleteTransaction(
   if (!session) return { success: false, code: ErrorCode.AUTH_ERROR, error: "Chưa đăng nhập." };
 
   const parsed = deleteTransactionSchema.safeParse(Object.fromEntries(formData));
-  if (!parsed.success) return validationError(parsed.error);
+  if (!parsed.success) return zodActionError(parsed.error);
 
   try {
     const result = await db.transaction(async (tx) => {

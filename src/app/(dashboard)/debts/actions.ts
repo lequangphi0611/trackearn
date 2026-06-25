@@ -2,24 +2,15 @@
 
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
-import { z } from "zod";
 import { db } from "@/db";
 import { debts, transactions } from "@/db/schema";
 import { getCurrentSession } from "@/queries/session";
-import { ErrorCode, type ActionError, type ActionResult } from "@/lib/types";
+import { ErrorCode, type ActionResult } from "@/lib/types";
 import { derivePaymentStatus } from "@/lib/payment";
 import { vnLocalToInstant } from "@/lib/date";
 import { formatCurrency } from "@/lib/format";
+import { zodActionError } from "@/lib/form";
 import { recordPaymentSchema, updateDebtSchema } from "./schema";
-
-function validationError(error: z.ZodError): ActionError {
-  return {
-    success: false,
-    code: ErrorCode.VALIDATION_ERROR,
-    error: "Dữ liệu không hợp lệ",
-    fieldErrors: z.flattenError(error).fieldErrors as Record<string, string[]>,
-  };
-}
 
 export async function recordDebtPayment(
   _prev: ActionResult | null,
@@ -29,11 +20,28 @@ export async function recordDebtPayment(
   if (!session) return { success: false, code: ErrorCode.AUTH_ERROR, error: "Chưa đăng nhập." };
 
   const parsed = recordPaymentSchema.safeParse(Object.fromEntries(formData));
-  if (!parsed.success) return validationError(parsed.error);
+  if (!parsed.success) return zodActionError(parsed.error);
   const { debtId, amountPaid, paidDate } = parsed.data;
 
   try {
     const result = await db.transaction(async (tx) => {
+      // transaction_id bất biến → đọc trước (không khóa) để khóa theo thứ tự
+      // transaction → debt, ĐỒNG NHẤT với updateTransaction/deleteTransaction
+      // (tránh deadlock khi vừa ghi trả vừa sửa cùng giao dịch).
+      const [link] = await tx
+        .select({ transactionId: debts.transactionId })
+        .from(debts)
+        .where(eq(debts.id, debtId))
+        .limit(1);
+      if (!link) return { ok: false as const, code: ErrorCode.NOT_FOUND, error: "Không tìm thấy công nợ." };
+
+      const [txn] = await tx
+        .select({ id: transactions.id, businessLine: transactions.businessLine })
+        .from(transactions)
+        .where(eq(transactions.id, link.transactionId))
+        .for("update")
+        .limit(1);
+
       // Khóa dòng công nợ để tránh lost update khi 2 người ghi trả cùng lúc.
       const [debt] = await tx
         .select()
@@ -45,16 +53,6 @@ export async function recordDebtPayment(
       if (debt.settledAt) {
         return { ok: false as const, code: ErrorCode.CONFLICT, error: "Công nợ đã tất toán." };
       }
-
-      const [txn] = await tx
-        .select({
-          id: transactions.id,
-          businessLine: transactions.businessLine,
-        })
-        .from(transactions)
-        .where(eq(transactions.id, debt.transactionId))
-        .for("update")
-        .limit(1);
 
       const remaining = debt.total - debt.paid;
       const paidInstant = vnLocalToInstant(`${paidDate}T12:00`);
@@ -132,7 +130,7 @@ export async function updateDebt(
   if (!session) return { success: false, code: ErrorCode.AUTH_ERROR, error: "Chưa đăng nhập." };
 
   const parsed = updateDebtSchema.safeParse(Object.fromEntries(formData));
-  if (!parsed.success) return validationError(parsed.error);
+  if (!parsed.success) return zodActionError(parsed.error);
   const { debtId, counterpartyName, dueDate } = parsed.data;
 
   try {

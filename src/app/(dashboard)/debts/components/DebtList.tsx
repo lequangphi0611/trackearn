@@ -2,14 +2,10 @@ import Link from "next/link";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { isOverdue } from "@/lib/date";
 import { Badge } from "@/components/ui/badge";
-import { BUSINESS_LINE_LABELS, type BusinessLine } from "@/lib/constants";
+import { businessLineLabel } from "@/lib/constants";
 import type { getDebts } from "@/queries/debts";
 
 type DebtItem = Awaited<ReturnType<typeof getDebts>>["items"][number];
-
-function lineLabel(businessLine: string | null): string {
-  return businessLine ? BUSINESS_LINE_LABELS[businessLine as BusinessLine] : "Chung";
-}
 
 export function DebtList({ items }: { items: DebtItem[] }) {
   if (items.length === 0) {
@@ -36,7 +32,7 @@ export function DebtList({ items }: { items: DebtItem[] }) {
                   Đã trả {formatCurrency(d.paid)} / {formatCurrency(d.total)}
                 </span>
                 {d.dueDate && <span>· Hẹn {formatDate(d.dueDate)}</span>}
-                <span>· {lineLabel(d.businessLine)}</span>
+                <span>· {businessLineLabel(d.businessLine)}</span>
                 {d.settledAt ? (
                   <Badge variant="success">Đã tất toán</Badge>
                 ) : (

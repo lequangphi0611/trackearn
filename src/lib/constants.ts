@@ -10,6 +10,11 @@ export const BUSINESS_LINE_LABELS: Record<BusinessLine, string> = {
   phu_kien: "Phụ kiện",
 };
 
+/** Nhãn mảng an toàn null: NULL = chi phí chung → "Chung". */
+export function businessLineLabel(businessLine: string | null): string {
+  return businessLine ? BUSINESS_LINE_LABELS[businessLine as BusinessLine] : "Chung";
+}
+
 // Màu accent badge theo mảng (xem docs/rules/ui-design.md) — dùng để quét bảng nhanh.
 export const BUSINESS_LINE_STYLES: Record<BusinessLine, string> = {
   xe_muc: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",

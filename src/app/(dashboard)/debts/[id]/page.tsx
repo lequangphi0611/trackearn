@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getDebtById } from "@/queries/debts";
 import { formatCurrency, formatDate, formatDateTime } from "@/lib/format";
 import { isOverdue, vnTodayISODate } from "@/lib/date";
-import { BUSINESS_LINE_LABELS, type BusinessLine } from "@/lib/constants";
+import { businessLineLabel } from "@/lib/constants";
 import { getLineByBusinessLine } from "@/lib/transaction-lines";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,9 +30,7 @@ export default async function DebtDetailPage({
 
   const remaining = d.total - d.paid;
   const overdue = isOverdue(d.dueDate, d.settledAt);
-  const lineLabel = d.businessLine
-    ? BUSINESS_LINE_LABELS[d.businessLine as BusinessLine]
-    : "Chung";
+  const lineLabel = businessLineLabel(d.businessLine);
   const dirLabel = d.direction === "receivable" ? "Khách nợ mình" : "Mình nợ";
   const sourceLine = getLineByBusinessLine(d.businessLine);
 

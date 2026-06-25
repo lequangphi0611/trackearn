@@ -5,6 +5,7 @@ import { debts, expenseCategories, transactions, user } from "@/db/schema";
 import type { PaymentStatus, TransactionType } from "@/lib/payment";
 
 export const TRANSACTIONS_PAGE_SIZE = 20;
+const MAX_PAGE = 50; // chặn trần load-more (tối đa 50 trang) tránh tải vô hạn
 
 export type TransactionFilters = {
   // null = chi phí chung (business_line IS NULL); ngược lại lọc đúng mảng.
@@ -25,7 +26,7 @@ function lineCondition(businessLine: string | null): SQL {
 
 /** Danh sách giao dịch của một mảng, có lọc + phân trang load-more (20 dòng). */
 export async function getTransactions(f: TransactionFilters) {
-  const page = f.page ?? 0;
+  const page = Math.min(f.page ?? 0, MAX_PAGE);
   const take = (page + 1) * TRANSACTIONS_PAGE_SIZE; // load-more tích luỹ
   const conds: SQL[] = [lineCondition(f.businessLine)];
   if (f.from) conds.push(gte(transactions.transactedAt, f.from));
