@@ -13,8 +13,6 @@ export default async function DashboardLayout({
   const session = await getCurrentSession();
   if (!session) redirect("/login");
 
-  const role = session.user.role ?? "member";
-
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
@@ -23,7 +21,7 @@ export default async function DashboardLayout({
             <Link href="/" className="font-semibold">
               TrackEarn
             </Link>
-            <DashboardNav role={role} />
+            <DashboardNav />
           </div>
           <SignOutButton />
         </div>
