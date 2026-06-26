@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentSession } from "@/queries/session";
+import { Logo } from "@/components/brand/Logo";
 import { DashboardNav } from "./components/DashboardNav";
 import { SignOutButton } from "./components/SignOutButton";
 import { QuickEntryFab } from "./components/QuickEntryFab";
@@ -23,9 +24,7 @@ export default async function DashboardLayout({
               href="/"
               className="flex items-center gap-2 font-semibold tracking-tight"
             >
-              <span className="grid size-6 place-items-center rounded-md bg-brand text-sm font-bold text-brand-foreground">
-                ₫
-              </span>
+              <Logo className="size-6 rounded-md" />
               <span>TrackEarn</span>
             </Link>
             <DashboardNav />
