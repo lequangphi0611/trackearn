@@ -82,7 +82,7 @@ Mọi cột tiền/số lượng dùng `font-mono` + class **`.tabular`** (hoặ
 - **Form** → `<Field label name error hint>` (Label+Input+lỗi inline) + `<SubmitButton>` (`src/components/forms/`). Không tự ghép Label/Input rời, không dùng placeholder thay label.
 - **Dialog** (vd ghi nhận trả, cảnh báo) → `components/ui/dialog`. **Dropdown** (nav, FAB) → `components/ui/menu`. **Select/badge/skeleton** → `components/ui/*`.
 - **Empty state**: lời mời hành động, không chỉ "Chưa có dữ liệu" — vd "Bấm **Nhập** để thêm dòng đầu tiên."
-- **Nhập nhanh**: FAB nổi (`QuickEntryFab`) trên mobile — đưa việc #1 lên trước, không bắt lặn qua nav.
+- **Điều hướng mobile**: thanh tab dưới đáy (`BottomNav`, `sm:hidden`) — Tổng quan / Giao dịch / **nút + giữa** (nhập nhanh, việc #1) / Công nợ / Cài đặt; vùng ngón cái với tới. Desktop dùng thanh ngang (`DashboardNav`, `hidden sm:flex`).
 
 ---
 

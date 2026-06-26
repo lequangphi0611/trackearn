@@ -20,8 +20,13 @@ export function DashboardNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="flex items-center gap-1">
-      <Link href="/" aria-current={pathname === "/" ? "page" : undefined} className={linkClass(pathname === "/")}>
+    // Desktop dùng thanh ngang; mobile chuyển sang BottomNav (xem layout).
+    <nav className="hidden items-center gap-1 sm:flex">
+      <Link
+        href="/"
+        aria-current={pathname === "/" ? "page" : undefined}
+        className={linkClass(pathname === "/")}
+      >
         Tổng quan
       </Link>
 
@@ -37,7 +42,10 @@ export function DashboardNav() {
         </MenuTrigger>
         <MenuContent>
           {TRANSACTION_LINES.map((l) => (
-            <MenuItem key={l.slug} render={<Link href={`/transactions/${l.slug}`} />}>
+            <MenuItem
+              key={l.slug}
+              render={<Link href={`/transactions/${l.slug}`} />}
+            >
               {l.label}
             </MenuItem>
           ))}
@@ -47,7 +55,10 @@ export function DashboardNav() {
       <Link href="/debts" className={linkClass(pathname.startsWith("/debts"))}>
         Công nợ
       </Link>
-      <Link href="/settings" className={linkClass(pathname.startsWith("/settings"))}>
+      <Link
+        href="/settings"
+        className={linkClass(pathname.startsWith("/settings"))}
+      >
         Cài đặt
       </Link>
     </nav>
