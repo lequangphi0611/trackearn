@@ -8,6 +8,7 @@ Bộ quy tắc cho toàn bộ codebase TrackEarn. **Đọc trước khi implemen
 |------|---------|
 | [naming.md](./rules/naming.md) | Đặt tên file, function, type, biến, DB schema |
 | [folder-structure.md](./rules/folder-structure.md) | Feature-based structure, nơi đặt queries/actions/components |
+| [data-model.md](./rules/data-model.md) | **Schema & nghiệp vụ**: tiền `bigint` đồng, `timestamptz`+giờ VN, `payment_status` suy ra, công nợ 1:1, khóa `transaction→debt`, audit — **đọc trước khi chạm DB** |
 | [typescript.md](./rules/typescript.md) | `type` vs `interface`, hạn chế `any`, return types |
 | [components.md](./rules/components.md) | `export const`, `"use client"` placement, khi nào tách component |
 | [data-fetching.md](./rules/data-fetching.md) | Server fetch ưu tiên, `src/queries/`, Suspense, khi nào client fetch |
@@ -22,7 +23,7 @@ Bộ quy tắc cho toàn bộ codebase TrackEarn. **Đọc trước khi implemen
 
 **Tôi cần fetch data** → Server Component + query trong `src/queries/` → [data-fetching.md](./rules/data-fetching.md)
 
-**Tôi cần ghi DB** → Server Action trong `feature/actions.ts`, trả về `ActionResult<T>` → [server-actions.md](./rules/server-actions.md)
+**Tôi cần ghi DB** → Server Action trong `feature/actions.ts`, trả về `ActionResult<T>` → [server-actions.md](./rules/server-actions.md). Quy ước schema/nghiệp vụ (tiền, timezone, khóa, công nợ) → [data-model.md](./rules/data-model.md)
 
 **Tôi cần API route** → chỉ khi client fetch, webhook, hoặc file export → [data-fetching.md](./rules/data-fetching.md)
 

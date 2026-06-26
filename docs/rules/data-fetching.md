@@ -43,39 +43,41 @@ export async function getTransactionById(id: string): Promise<Transaction | unde
 
 ## Auth trong queries
 
-Kiểm tra session trong layout hoặc đầu query function — không để component con tự kiểm tra:
+Lấy session qua **`getCurrentSession()`** (`src/queries/session.ts`) — bọc React `cache()` nên layout + page gọi nhiều lần chỉ xác thực **1 lần/request**. KHÔNG gọi `auth.api.getSession` rải rác.
 
 ```ts
 // src/queries/reports.ts — chỉ owner được xem
-import { auth } from "@/lib/auth"
-import { headers } from "next/headers"
 import { redirect } from "next/navigation"
+import { getCurrentSession } from "@/queries/session"
 
 export async function getMonthlyReport(month: string) {
-  const session = await auth.api.getSession({ headers: await headers() })
+  const session = await getCurrentSession()
   if (!session || session.user.role !== "owner") redirect("/")
   // ... query
 }
 ```
 
-## Suspense boundaries
+> Query function được phép trả **shape chiếu/join** (chọn cột, join nhiều bảng) — không bắt buộc trả nguyên `InferSelectModel`. Component nhận đúng shape qua `Awaited<ReturnType<typeof getX>>`.
 
-Đặt `<Suspense>` ở **page level**, không ở component con:
+## Streaming, Skeleton & Load-more
+
+**Stream phần chậm (DB) trong `<Suspense>`** để khung trang hiện ngay, danh sách hiện skeleton rồi mới tới — quan trọng trên mobile 3G.
+
+- Tách phần fetch DB vào **component con async** (vd `TransactionResults`); page chỉ render khung (tiêu đề, bộ lọc) + `<Suspense fallback={<…Skeleton/>}>`.
+- **`key` của Suspense đặt theo BỘ LỌC, KHÔNG theo `page`** → đổi bộ lọc thì hiện skeleton; bấm "Xem thêm" thì **không** nhấp nháy skeleton (giữ nội dung cũ).
+- Skeleton phải **cùng hình dáng** với nội dung thật (tránh nhảy layout).
+- Màn lá không có load-more (form, chi tiết) → dùng `loading.tsx` của route.
 
 ```tsx
-// ✅ — page.tsx
-import { Suspense } from "react"
-
-export default function TransactionsPage() {
-  return (
-    <Suspense fallback={<TransactionSkeleton />}>
-      <TransactionList />
-    </Suspense>
-  )
-}
-
-// ❌ — component tự bọc Suspense cho chính nó
+// page.tsx — khung hiện ngay, list stream
+<Suspense key={filterKey} fallback={<TransactionListSkeleton />}>
+  <TransactionResults query={query} moreHref={moreHref} />
+</Suspense>
 ```
+
+**Load-more** dùng component `<LoadMore href>` (`src/components/LoadMore.tsx`): `<Link scroll={false}>` (không nhảy về đầu trang) + spinner pending qua `useLinkStatus`. Phân trang tích lũy, chặn trần `MAX_PAGE` trong query.
+
+Quality floor: tôn trọng `prefers-reduced-motion` (đã set global ở `globals.css`).
 
 ## Khi nào dùng client fetch
 

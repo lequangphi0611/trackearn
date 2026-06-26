@@ -2,113 +2,93 @@
 
 ## File placement
 
-Mỗi feature có 1 file `actions.ts` riêng trong folder feature:
+Mỗi feature có 1 file `actions.ts` trong folder feature đó. `"use server"` đặt **đầu file**, không phải đầu từng function.
 
 ```
 src/app/(dashboard)/transactions/actions.ts
-src/app/(dashboard)/devices/actions.ts
 src/app/(dashboard)/debts/actions.ts
 ```
 
-`"use server"` đặt ở đầu file, không phải đầu từng function.
+## Return type — `ActionResult<T>`
 
-## Return type chuẩn
-
-Mọi Server Action trả về `ActionResult<T>`:
+Mọi Server Action trả `ActionResult<T>` (định nghĩa ở `src/lib/types.ts`). **Không throw ra ngoài** — catch và trả `{ success: false, … }`.
 
 ```ts
-// src/lib/types.ts
 type ActionResult<T = void> =
   | { success: true; data: T }
-  | { success: false; error: string }
+  | { success: false; error: string; code: ErrorCode; fieldErrors?: Record<string, string[]> };
 ```
 
-Không throw exception ra ngoài — catch và trả về `{ success: false, error }`:
+- `code` dùng **hằng `ErrorCode`** (const object trong `types.ts`): `ErrorCode.AUTH_ERROR`, `ErrorCode.VALIDATION_ERROR`… — **KHÔNG hardcode chuỗi** `"AUTH_ERROR"`.
+- Helper trả lỗi dùng type `ActionError` (nhánh `success:false`, không phụ thuộc `T`).
+- Chi tiết taxonomy + cách hiển thị: xem [error-handling](./error-handling.md).
+
+## Thứ tự cố định: auth → validate → execute
 
 ```ts
-// src/app/(dashboard)/transactions/actions.ts
-"use server"
+"use server";
 
-import { db } from "@/db"
-import { transactions } from "@/db/schema"
-import { revalidatePath } from "next/cache"
-import type { ActionResult } from "@/lib/types"
+import { revalidatePath } from "next/cache";
+import { db } from "@/db";
+import { getCurrentSession } from "@/queries/session";
+import { ErrorCode, type ActionResult } from "@/lib/types";
+import { zodActionError } from "@/lib/form";
+import { createTransactionSchema } from "./schema";
 
-export const createTransaction = async (
-  input: CreateTransactionInput
-): Promise<ActionResult<{ id: string }>> => {
+export async function createTransaction(
+  _prev: ActionResult<{ id: string }> | null,
+  formData: FormData,
+): Promise<ActionResult<{ id: string }>> {
+  // 1. Auth — getCurrentSession bọc React cache() (dedupe trong 1 request).
+  const session = await getCurrentSession();
+  if (!session) return { success: false, code: ErrorCode.AUTH_ERROR, error: "Chưa đăng nhập." };
+
+  // 2. Validate (Zod). Lỗi → zodActionError (dùng chung, z.flattenError).
+  const parsed = createTransactionSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return zodActionError(parsed.error);
+
+  // 3. Execute — nhiều bảng thì gói trong db.transaction (xem data-model).
   try {
-    const [row] = await db.insert(transactions).values(input).returning({ id: transactions.id })
-    revalidatePath("/transactions")
-    return { success: true, data: { id: row.id } }
+    const id = await db.transaction(async (tx) => {
+      /* insert transaction, sinh debt nếu trả sau… */
+      return "...";
+    });
+    revalidatePath("/transactions");
+    return { success: true, data: { id } };
   } catch (err) {
-    console.error("[createTransaction]", err)
-    return { success: false, error: "Không thể tạo giao dịch. Vui lòng thử lại." }
+    console.error("[createTransaction]", err);
+    return { success: false, code: ErrorCode.INTERNAL_ERROR, error: "Không thể tạo giao dịch, thử lại." };
   }
 }
 ```
 
-## Validation
+## Validation (Zod)
 
-Validate input bằng Zod trước khi ghi DB:
+- Schema ở `feature/schema.ts`. Parse bằng `safeParse(Object.fromEntries(formData))`.
+- Lỗi → **`zodActionError(parsed.error)`** (`src/lib/form.ts`) — nó dùng `z.flattenError` (zod 4, **không** `.flatten()`). Đừng viết lại helper này ở từng file.
+- **Server là nguồn chân lý**: ép quy tắc nghiệp vụ ở server (business_line suy từ route, chi-phí-chung = expense, paid ≤ amount…), không tin giá trị client gửi lên.
 
-```ts
-import { z } from "zod"
+## Auth
 
-const CreateTransactionSchema = z.object({
-  amount: z.number().positive(),
-  businessLineId: z.string().uuid(),
-  note: z.string().optional(),
-})
+- Luôn dùng **`getCurrentSession()`** (`src/queries/session.ts`, bọc `cache()`), KHÔNG rải `auth.api.getSession` khắp nơi.
+- Phân quyền: `session.user.role !== "owner"` → trả `ErrorCode.AUTH_ERROR` (defense-in-depth, ngoài việc gác ở route).
 
-export const createTransaction = async (raw: unknown): Promise<ActionResult> => {
-  const parsed = CreateTransactionSchema.safeParse(raw)
-  if (!parsed.success) {
-    return { success: false, error: parsed.error.errors[0].message }
-  }
-  // ...
-}
-```
+## Ghi DB: atomic + khóa dòng
 
-## Auth trong actions
+Thao tác chạm nhiều bảng → `db.transaction`. Dòng có thể tranh chấp → `.for("update")`. **Thứ tự khóa `transaction` → `debt`** ở mọi action (tránh deadlock). Chi tiết: [data-model](./data-model.md).
 
-Kiểm tra session ở đầu mỗi action trước khi làm bất cứ điều gì:
-
-```ts
-import { auth } from "@/lib/auth"
-import { headers } from "next/headers"
-
-export const deleteTransaction = async (id: string): Promise<ActionResult> => {
-  const session = await auth.api.getSession({ headers: await headers() })
-  if (!session) return { success: false, error: "Chưa đăng nhập." }
-  if (session.user.role !== "owner") return { success: false, error: "Không có quyền." }
-  // ...
-}
-```
-
-## Dùng trong component
+## Dùng trong client component
 
 ```tsx
-"use client"
-
-import { createTransaction } from "./actions"
-
-export const TransactionForm = () => {
-  const handleSubmit = async (formData: FormData) => {
-    const result = await createTransaction({ ... })
-    if (!result.success) {
-      toast.error(result.error)
-      return
-    }
-    toast.success("Đã tạo giao dịch")
-  }
-  // ...
-}
+"use client";
+const [state, formAction] = useActionState(createTransaction, null);
+// <form action={formAction}> + <SubmitButton> (useFormStatus)
+// getFormError(state) → fieldErrors (inline qua <Field>) + formError (Alert)
+// success → toast + router.push/refresh. Action KHÔNG redirect() ở luồng cần set cookie.
 ```
+
+Component dùng chung: `<Field>`, `<SubmitButton>` (`src/components/forms/`), `getFormError` (`src/lib/form.ts`) — không reinvent.
 
 ## Khi nào KHÔNG dùng Server Action
 
-Dùng API route thay thế khi:
-- Client component cần fetch (SWR, polling)
-- Cần trả về file (CSV, PDF export)
-- Webhook từ service bên ngoài gọi vào
+Dùng API route (`src/app/api/`) khi: client cần fetch (polling, search-as-you-type), export file (CSV/PDF), hoặc webhook bên ngoài.

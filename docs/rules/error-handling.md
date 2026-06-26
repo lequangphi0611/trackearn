@@ -4,12 +4,15 @@
 
 ```ts
 // src/lib/types.ts
-type ErrorCode =
-  | "VALIDATION_ERROR"   // Zod fail
-  | "AUTH_ERROR"         // chưa đăng nhập, sai role, hoặc session hết hạn — dùng cho cả authentication lẫn authorization
-  | "NOT_FOUND"          // record không tồn tại
-  | "CONFLICT"           // duplicate / constraint violation
-  | "INTERNAL_ERROR"     // unexpected (DB crash, network, v.v.)
+// ErrorCode là CONST object (dùng `ErrorCode.X`, KHÔNG hardcode chuỗi) + type cùng tên:
+const ErrorCode = {
+  VALIDATION_ERROR: "VALIDATION_ERROR", // Zod fail
+  AUTH_ERROR: "AUTH_ERROR",             // chưa đăng nhập / sai role / hết hạn (authn + authz)
+  NOT_FOUND: "NOT_FOUND",               // record không tồn tại
+  CONFLICT: "CONFLICT",                 // duplicate / constraint violation
+  INTERNAL_ERROR: "INTERNAL_ERROR",     // unexpected (DB crash, network, v.v.)
+} as const;
+type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];
 
 type ActionResult<T = void> =
   | { success: true; data: T }
@@ -32,22 +35,15 @@ Thứ tự cố định trong mọi action: **auth → validate → execute**.
 export const createTransaction = async (
   input: unknown
 ): Promise<ActionResult<{ id: string }>> => {
-  // 1. Auth
-  const session = await auth.api.getSession({ headers: await headers() })
+  // 1. Auth — getCurrentSession (bọc React cache), không gọi auth.api.getSession rải rác.
+  const session = await getCurrentSession()
   if (!session) {
-    return { success: false, error: "Phiên đăng nhập đã hết hạn.", code: "AUTH_ERROR" }
+    return { success: false, error: "Phiên đăng nhập đã hết hạn.", code: ErrorCode.AUTH_ERROR }
   }
 
-  // 2. Validate
+  // 2. Validate — lỗi Zod dùng helper chung zodActionError (z.flattenError, KHÔNG .flatten()).
   const parsed = CreateTransactionSchema.safeParse(input)
-  if (!parsed.success) {
-    return {
-      success: false,
-      error: "Dữ liệu không hợp lệ.",
-      code: "VALIDATION_ERROR",
-      fieldErrors: parsed.error.flatten().fieldErrors,
-    }
-  }
+  if (!parsed.success) return zodActionError(parsed.error)
 
   // 3. Execute
   try {
@@ -59,7 +55,7 @@ export const createTransaction = async (
     return { success: true, data: { id: row.id } }
   } catch (err) {
     console.error("[createTransaction]", { input: parsed.data, error: err })
-    return { success: false, error: "Đã có lỗi xảy ra. Vui lòng thử lại.", code: "INTERNAL_ERROR" }
+    return { success: false, error: "Đã có lỗi xảy ra. Vui lòng thử lại.", code: ErrorCode.INTERNAL_ERROR }
   }
 }
 ```
@@ -103,6 +99,8 @@ DB constraint violation → message mô tả nghiệp vụ, không mô tả DB:
 | Not found | "Không tìm thấy [tên entity]." |
 
 ## Client-side display
+
+Form dùng `useActionState` nên tách lỗi bằng helper chung **`getFormError(state)`** (`src/lib/form.ts`) → `{ fieldErrors, formError }`; field error hiển thị inline qua **`<Field>`**, form error qua `<Alert>`. Không tự viết lại logic tách lỗi ở từng form.
 
 Mỗi `ErrorCode` có cách hiển thị riêng:
 
