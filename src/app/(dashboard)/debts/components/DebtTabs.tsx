@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { formatCurrency } from "@/lib/format";
+import { Money } from "@/components/Money";
 
 export function DebtTabs({
   dir,
@@ -12,8 +12,8 @@ export function DebtTabs({
   payableTotal: number;
 }) {
   const tabs = [
-    { key: "receivable", label: "Khách nợ mình", total: receivableTotal },
-    { key: "payable", label: "Mình nợ", total: payableTotal },
+    { key: "receivable", label: "Khách nợ mình", total: receivableTotal, tone: "income" as const },
+    { key: "payable", label: "Mình nợ", total: payableTotal, tone: "expense" as const },
   ];
   return (
     <div className="grid grid-cols-2 gap-2">
@@ -27,7 +27,7 @@ export function DebtTabs({
           )}
         >
           <span className="block text-xs text-muted-foreground">{t.label}</span>
-          <span className="block font-semibold">{formatCurrency(t.total)}</span>
+          <Money amount={t.total} tone={t.tone} className="mt-0.5 block text-base font-semibold" />
         </Link>
       ))}
     </div>

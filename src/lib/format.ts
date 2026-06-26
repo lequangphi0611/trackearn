@@ -32,3 +32,14 @@ export function formatDateTime(value: Date | string): string {
 export function formatDate(value: Date | string): string {
   return dateFormatter.format(typeof value === "string" ? new Date(value) : value);
 }
+
+const timeFormatter = new Intl.DateTimeFormat("vi-VN", {
+  timeZone: "Asia/Ho_Chi_Minh",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
+/** Mốc thời gian → giờ:phút VN. */
+export function formatTime(value: Date | string): string {
+  return timeFormatter.format(typeof value === "string" ? new Date(value) : value);
+}

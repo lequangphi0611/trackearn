@@ -1,20 +1,27 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getDebtById } from "@/queries/debts";
-import { formatCurrency, formatDate, formatDateTime } from "@/lib/format";
+import { formatDate, formatDateTime } from "@/lib/format";
 import { isOverdue, vnTodayISODate } from "@/lib/date";
 import { businessLineLabel } from "@/lib/constants";
 import { getLineByBusinessLine } from "@/lib/transaction-lines";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Money } from "@/components/Money";
 import { RecordPaymentDialog } from "../components/RecordPaymentDialog";
 import { EditDebtForm } from "../components/EditDebtForm";
 
-function Row({ label, value }: { label: string; value: string }) {
+function Row({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="flex items-center justify-between gap-2 text-sm">
       <span className="text-muted-foreground">{label}</span>
-      <span className="font-medium">{value}</span>
+      <span className="font-medium">{children}</span>
     </div>
   );
 }
@@ -53,11 +60,21 @@ export default async function DebtDetailPage({
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-2">
-          <Row label="Tổng" value={formatCurrency(d.total)} />
-          <Row label="Đã trả" value={formatCurrency(d.paid)} />
-          <Row label="Còn lại" value={formatCurrency(remaining)} />
-          {d.dueDate && <Row label="Hẹn trả" value={formatDate(d.dueDate)} />}
-          {d.settledAt && <Row label="Tất toán" value={formatDateTime(d.settledAt)} />}
+          <Row label="Tổng">
+            <Money amount={d.total} />
+          </Row>
+          <Row label="Đã trả">
+            <Money amount={d.paid} />
+          </Row>
+          <Row label="Còn lại">
+            <Money
+              amount={remaining}
+              tone={d.direction === "receivable" ? "income" : "expense"}
+              className="text-base font-semibold"
+            />
+          </Row>
+          {d.dueDate && <Row label="Hẹn trả">{formatDate(d.dueDate)}</Row>}
+          {d.settledAt && <Row label="Tất toán">{formatDateTime(d.settledAt)}</Row>}
         </CardContent>
       </Card>
 

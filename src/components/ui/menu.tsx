@@ -11,11 +11,16 @@ const MenuSeparator = BaseMenu.Separator;
 function MenuContent({
   className,
   children,
+  side = "bottom",
+  align = "start",
   ...props
-}: React.ComponentProps<typeof BaseMenu.Popup>) {
+}: React.ComponentProps<typeof BaseMenu.Popup> & {
+  side?: "top" | "bottom" | "left" | "right";
+  align?: "start" | "center" | "end";
+}) {
   return (
     <BaseMenu.Portal>
-      <BaseMenu.Positioner sideOffset={6} align="start" className="z-50">
+      <BaseMenu.Positioner sideOffset={6} side={side} align={align} className="z-50">
         <BaseMenu.Popup
           className={cn(
             "min-w-44 rounded-lg border border-border bg-card p-1 shadow-md outline-none",
