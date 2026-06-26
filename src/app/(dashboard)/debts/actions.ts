@@ -6,7 +6,7 @@ import { db } from "@/db";
 import { debts, transactions } from "@/db/schema";
 import { getCurrentSession } from "@/queries/session";
 import { ErrorCode, type ActionResult } from "@/lib/types";
-import { derivePaymentStatus } from "@/lib/payment";
+import { applyDebtPayment, derivePaymentStatus, type DebtDirection } from "@/lib/payment";
 import { vnLocalToInstant } from "@/lib/date";
 import { formatCurrency } from "@/lib/format";
 import { zodActionError } from "@/lib/form";
@@ -54,32 +54,21 @@ export async function recordDebtPayment(
         return { ok: false as const, code: ErrorCode.CONFLICT, error: "Công nợ đã tất toán." };
       }
 
-      const remaining = debt.total - debt.paid;
+      // Quy tắc tip/tất toán/chặn trả quá nằm trong hàm thuần applyDebtPayment.
+      const outcome = applyDebtPayment(
+        { total: debt.total, paid: debt.paid, direction: debt.direction as DebtDirection },
+        amountPaid,
+      );
+      if (!outcome.ok) {
+        return {
+          ok: false as const,
+          code: ErrorCode.VALIDATION_ERROR,
+          error: `Không trả quá số còn lại (${formatCurrency(debt.total - debt.paid)}).`,
+        };
+      }
+      const { newPaid, tip, settled } = outcome;
       const paidInstant = vnLocalToInstant(`${paidDate}T12:00`);
 
-      let tip = 0;
-      let newPaid: number;
-      if (debt.direction === "payable") {
-        // Mình trả NCC — không trả dư.
-        if (amountPaid > remaining) {
-          return {
-            ok: false as const,
-            code: ErrorCode.VALIDATION_ERROR,
-            error: `Không trả quá số còn lại (${formatCurrency(remaining)}).`,
-          };
-        }
-        newPaid = debt.paid + amountPaid;
-      } else {
-        // receivable — khách trả dư → phần vượt thành tip.
-        if (amountPaid > remaining) {
-          tip = amountPaid - remaining;
-          newPaid = debt.total;
-        } else {
-          newPaid = debt.paid + amountPaid;
-        }
-      }
-
-      const settled = newPaid >= debt.total;
       await tx
         .update(debts)
         .set({ paid: newPaid, settledAt: settled ? paidInstant : null })

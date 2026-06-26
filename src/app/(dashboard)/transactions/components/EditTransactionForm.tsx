@@ -29,6 +29,18 @@ type EditDebt = {
   dueDate: string | null;
 } | null;
 
+type EditTransactionFormProps = {
+  line: string;
+  id: string;
+  type: string;
+  amount: number;
+  categoryId: string | null;
+  note: string | null;
+  defaultDateTime: string;
+  categories: Category[];
+  debt: EditDebt;
+};
+
 export function EditTransactionForm({
   line,
   id,
@@ -39,17 +51,7 @@ export function EditTransactionForm({
   defaultDateTime,
   categories,
   debt,
-}: {
-  line: string;
-  id: string;
-  type: string;
-  amount: number;
-  categoryId: string | null;
-  note: string | null;
-  defaultDateTime: string;
-  categories: Category[];
-  debt: EditDebt;
-}) {
+}: EditTransactionFormProps) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const [state, formAction] = useActionState(updateTransaction, null);

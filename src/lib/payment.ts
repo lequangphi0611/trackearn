@@ -16,3 +16,28 @@ export function derivePaymentStatus(paidAmount: number, amount: number): Payment
 export function deriveDirection(type: TransactionType): DebtDirection {
   return type === "income" ? "receivable" : "payable";
 }
+
+export type DebtState = { total: number; paid: number; direction: DebtDirection };
+
+export type DebtPaymentOutcome =
+  | { ok: true; newPaid: number; tip: number; settled: boolean }
+  | { ok: false; reason: "overpay" };
+
+/**
+ * Tính kết quả một lần ghi nhận trả (hàm thuần, dễ test) — xem
+ * docs/spec/transactions-and-debts.md §3.3–3.4:
+ * - payable (mình nợ NCC): KHÔNG trả dư → vượt số còn lại = lỗi `overpay`.
+ * - receivable (khách nợ mình): trả dư → tất toán đúng `total`, phần vượt thành `tip`.
+ * - `settled` khi đã trả đủ `total`.
+ */
+export function applyDebtPayment(debt: DebtState, amountPaid: number): DebtPaymentOutcome {
+  const remaining = debt.total - debt.paid;
+
+  if (debt.direction === "payable" && amountPaid > remaining) {
+    return { ok: false, reason: "overpay" };
+  }
+
+  const tip = debt.direction === "receivable" && amountPaid > remaining ? amountPaid - remaining : 0;
+  const newPaid = tip > 0 ? debt.total : debt.paid + amountPaid;
+  return { ok: true, newPaid, tip, settled: newPaid >= debt.total };
+}

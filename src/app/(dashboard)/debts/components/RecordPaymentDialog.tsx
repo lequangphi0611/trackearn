@@ -43,6 +43,9 @@ export function RecordPaymentDialog({
       setOpen(false);
       router.refresh();
     }
+    // Deps là `state` (cả object) chứ không phải `state.success`: mỗi lần submit
+    // useActionState trả về object MỚI, nên effect re-fire đúng cho cả lần trả
+    // thứ 2+. Nếu deps [state.success] thì true→true (không đổi) sẽ bỏ sót lần sau.
   }, [state, router]);
 
   const { fieldErrors, formError } = getFormError(state);
