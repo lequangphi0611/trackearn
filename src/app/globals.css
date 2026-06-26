@@ -162,6 +162,17 @@
   animation: row-enter 1.1s ease-out;
 }
 
+/* Nền giấy kẻ dòng (màn auth) — như trang sổ, rất mờ để đọc là "giấy" chứ không phải trang trí. */
+.ledger-paper {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 31px,
+    color-mix(in oklch, var(--foreground) 6%, transparent) 31px,
+    color-mix(in oklch, var(--foreground) 6%, transparent) 32px
+  );
+}
+
 /* Quality floor: tôn trọng người tắt hiệu ứng. */
 @media (prefers-reduced-motion: reduce) {
   *,

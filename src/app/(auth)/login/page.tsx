@@ -1,13 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/queries/session";
 import { ownerExists } from "@/queries/users";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoginForm } from "./LoginForm";
 
 export default async function LoginPage({
@@ -23,9 +17,8 @@ export default async function LoginPage({
 
   return (
     <Card>
-      <CardHeader className="text-center">
-        <CardTitle className="text-xl">Đăng nhập</CardTitle>
-        <CardDescription>TrackEarn — quản lý doanh thu cửa hàng</CardDescription>
+      <CardHeader>
+        <CardTitle className="text-base">Đăng nhập</CardTitle>
       </CardHeader>
       <CardContent>
         <LoginForm callbackURL={callbackURL} showRegister={!hasOwner} />
