@@ -17,6 +17,7 @@ Bộ quy tắc cho toàn bộ codebase TrackEarn. **Đọc trước khi implemen
 | [performance.md](./rules/performance.md) | `next/image` + sizes, lazy load, N+1 queries |
 | [ui-design.md](./rules/ui-design.md) | Color tokens, typography scale, spacing, breakpoints, component conventions |
 | [error-handling.md](./rules/error-handling.md) | ActionResult + ErrorCode, logging, toast/inline/alert, error.tsx |
+| [logging.md](./rules/logging.md) | **pino, log SQL theo env, request-id (AsyncLocalStorage), `logError`, `withActionContext`** |
 | [commits.md](./rules/commits.md) | `feat:` / `fix:` / `chore:` convention |
 
 ## Quyết định nhanh

@@ -4,6 +4,8 @@ import { headers } from "next/headers";
 import { APIError } from "better-auth/api";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
+import { withActionContext } from "@/lib/action-context";
+import { logError, logWarn } from "@/lib/logger";
 import { ErrorCode, type ActionResult } from "@/lib/types";
 import { loginSchema } from "./schema";
 
@@ -18,43 +20,57 @@ function safeCallbackURL(raw: FormDataEntryValue | null): string {
   return raw;
 }
 
-export async function login(
-  _prev: ActionResult<{ redirectTo: string }> | null,
-  formData: FormData,
-): Promise<ActionResult<{ redirectTo: string }>> {
-  const parsed = loginSchema.safeParse({
-    email: formData.get("email"),
-    password: formData.get("password"),
-  });
-
-  if (!parsed.success) {
-    return {
-      success: false,
-      code: ErrorCode.VALIDATION_ERROR,
-      error: "Dữ liệu không hợp lệ",
-      fieldErrors: z.flattenError(parsed.error).fieldErrors as Record<string, string[]>,
-    };
-  }
-
-  const redirectTo = safeCallbackURL(formData.get("callbackURL"));
-
-  try {
-    await auth.api.signInEmail({
-      body: { email: parsed.data.email, password: parsed.data.password },
-      headers: await headers(),
+export const login = withActionContext(
+  "login",
+  async (
+    _prev: ActionResult<{ redirectTo: string }> | null,
+    formData: FormData,
+  ): Promise<ActionResult<{ redirectTo: string }>> => {
+    const parsed = loginSchema.safeParse({
+      email: formData.get("email"),
+      password: formData.get("password"),
     });
-  } catch (err) {
-    if (err instanceof APIError) {
-      // Sai thông tin đăng nhập — thông báo chung, không tiết lộ sai cái nào.
+
+    if (!parsed.success) {
       return {
         success: false,
-        code: ErrorCode.AUTH_ERROR,
-        error: "Email hoặc mật khẩu không đúng.",
+        code: ErrorCode.VALIDATION_ERROR,
+        error: "Dữ liệu không hợp lệ",
+        fieldErrors: z.flattenError(parsed.error).fieldErrors as Record<
+          string,
+          string[]
+        >,
       };
     }
-    console.error("[login]", err);
-    return { success: false, code: ErrorCode.INTERNAL_ERROR, error: "Có lỗi xảy ra, thử lại sau." };
-  }
 
-  return { success: true, data: { redirectTo } };
-}
+    const redirectTo = safeCallbackURL(formData.get("callbackURL"));
+
+    try {
+      await auth.api.signInEmail({
+        body: { email: parsed.data.email, password: parsed.data.password },
+        headers: await headers(),
+      });
+    } catch (err) {
+      if (
+        err instanceof APIError &&
+        err.body?.code === "INVALID_EMAIL_OR_PASSWORD"
+      ) {
+        // Sai thông tin đăng nhập — lỗi nghiệp vụ biết trước → WARN.
+        logWarn("login", err);
+        return {
+          success: false,
+          code: ErrorCode.AUTH_ERROR,
+          error: "Email hoặc mật khẩu không đúng.",
+        };
+      }
+      logError("login", err);
+      return {
+        success: false,
+        code: ErrorCode.INTERNAL_ERROR,
+        error: "Có lỗi xảy ra, thử lại sau.",
+      };
+    }
+
+    return { success: true, data: { redirectTo } };
+  },
+);
