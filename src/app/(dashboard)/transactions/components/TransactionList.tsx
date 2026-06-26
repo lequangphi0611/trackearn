@@ -9,22 +9,33 @@ import { StatusBadge } from "./StatusBadge";
 
 type TransactionItem = Awaited<ReturnType<typeof getTransactions>>["items"][number];
 
+type IndexedItem = { t: TransactionItem; index: number };
+
 function groupByDay(items: TransactionItem[]) {
-  const groups: { day: Date; items: TransactionItem[] }[] = [];
-  for (const t of items) {
+  const groups: { day: Date; rows: IndexedItem[] }[] = [];
+  items.forEach((t, index) => {
     const dayKey = vnDateOnly(new Date(t.transactedAt));
     const last = groups.at(-1);
-    if (last && vnDateOnly(last.day) === dayKey) last.items.push(t);
-    else groups.push({ day: new Date(t.transactedAt), items: [t] });
-  }
+    if (last && vnDateOnly(last.day) === dayKey) last.rows.push({ t, index });
+    else groups.push({ day: new Date(t.transactedAt), rows: [{ t, index }] });
+  });
   return groups;
 }
 
-function sumByType(items: TransactionItem[], type: string) {
-  return items.reduce((s, t) => (t.type === type ? s + t.amount : s), 0);
+function sumByType(rows: IndexedItem[], type: string) {
+  return rows.reduce((s, { t }) => (t.type === type ? s + t.amount : s), 0);
 }
 
-export function TransactionList({ items, line }: { items: TransactionItem[]; line: string }) {
+export function TransactionList({
+  items,
+  line,
+  highlightFrom,
+}: {
+  items: TransactionItem[];
+  line: string;
+  // Dòng có chỉ số >= mốc này là vừa tải thêm → cho hiệu ứng "dòng mới".
+  highlightFrom?: number;
+}) {
   if (items.length === 0) {
     return (
       <p className="py-12 text-center text-sm text-muted-foreground">
@@ -39,8 +50,8 @@ export function TransactionList({ items, line }: { items: TransactionItem[]; lin
   return (
     <div className="flex flex-col gap-5">
       {groups.map((g) => {
-        const income = sumByType(g.items, "income");
-        const expense = sumByType(g.items, "expense");
+        const income = sumByType(g.rows, "income");
+        const expense = sumByType(g.rows, "expense");
         return (
           <section key={g.day.toISOString()} className="flex flex-col">
             <div className="flex items-baseline justify-between px-1 pb-1.5">
@@ -53,7 +64,7 @@ export function TransactionList({ items, line }: { items: TransactionItem[]; lin
               </span>
             </div>
             <ul className="overflow-hidden rounded-lg border border-border">
-              {g.items.map((t, idx) => (
+              {g.rows.map(({ t, index }, idx) => (
                 <li key={t.id}>
                   <Link
                     href={`/transactions/${line}/${t.id}`}
@@ -61,6 +72,7 @@ export function TransactionList({ items, line }: { items: TransactionItem[]; lin
                       "flex items-stretch gap-3 border-l-2 py-2.5 pr-3 pl-3 transition-colors hover:bg-muted/40",
                       t.type === "income" ? "border-l-income" : "border-l-expense",
                       idx > 0 && "border-t border-t-border/70",
+                      highlightFrom !== undefined && index >= highlightFrom && "row-enter",
                     )}
                   >
                     <div className="min-w-0 flex-1">
