@@ -1,10 +1,10 @@
-import Link from "next/link";
-import { getDebts, getDebtRemainingTotal, type DebtStatusFilter } from "@/queries/debts";
+import { Suspense } from "react";
+import type { DebtFilters, DebtStatusFilter } from "@/queries/debts";
 import type { DebtDirection } from "@/lib/payment";
-import { buttonVariants } from "@/components/ui/button";
-import { DebtTabs } from "./components/DebtTabs";
-import { DebtFilters } from "./components/DebtFilters";
-import { DebtList } from "./components/DebtList";
+import { DebtFilters as Filters } from "./components/DebtFilters";
+import { DebtTabsAsync } from "./components/DebtTabsAsync";
+import { DebtResults } from "./components/DebtResults";
+import { DebtListSkeleton, DebtTabsSkeleton } from "./components/DebtSkeletons";
 
 type SearchParams = {
   dir?: string;
@@ -26,11 +26,13 @@ export default async function DebtsPage({
   const overdue = sp.overdue === "1";
   const page = Math.max(0, Math.trunc(Number(sp.page) || 0));
 
-  const [receivableTotal, payableTotal, list] = await Promise.all([
-    getDebtRemainingTotal("receivable"),
-    getDebtRemainingTotal("payable"),
-    getDebts({ direction: dir, status, overdueOnly: overdue, q: sp.q?.trim() || undefined, page }),
-  ]);
+  const query: DebtFilters = {
+    direction: dir,
+    status,
+    overdueOnly: overdue,
+    q: sp.q?.trim() || undefined,
+    page,
+  };
 
   const moreParams = new URLSearchParams();
   moreParams.set("dir", dir);
@@ -39,20 +41,21 @@ export default async function DebtsPage({
   if (sp.q) moreParams.set("q", sp.q);
   moreParams.set("page", String(page + 1));
 
+  const filterKey = `${dir}|${status}|${overdue}|${sp.q ?? ""}`;
+
   return (
     <div className="flex flex-col gap-4">
       <h1 className="text-lg font-semibold">Công nợ</h1>
-      <DebtTabs dir={dir} receivableTotal={receivableTotal} payableTotal={payableTotal} />
-      <DebtFilters dir={dir} params={{ status, overdue, q: sp.q }} />
-      <DebtList items={list.items} />
-      {list.hasMore && (
-        <Link
-          href={`/debts?${moreParams.toString()}`}
-          className={buttonVariants({ variant: "outline", size: "sm", className: "self-center" })}
-        >
-          Xem thêm
-        </Link>
-      )}
+
+      <Suspense fallback={<DebtTabsSkeleton />}>
+        <DebtTabsAsync dir={dir} />
+      </Suspense>
+
+      <Filters dir={dir} params={{ status, overdue, q: sp.q }} />
+
+      <Suspense key={filterKey} fallback={<DebtListSkeleton />}>
+        <DebtResults query={query} moreHref={`/debts?${moreParams}`} />
+      </Suspense>
     </div>
   );
 }

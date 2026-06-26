@@ -1,13 +1,15 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { getTransactionLine } from "@/lib/transaction-lines";
-import { getTransactions } from "@/queries/transactions";
+import type { TransactionFilters } from "@/queries/transactions";
 import { vnDateOnly, vnLocalToInstant, vnMonthRange } from "@/lib/date";
 import type { PaymentStatus, TransactionType } from "@/lib/payment";
 import { buttonVariants } from "@/components/ui/button";
-import { TransactionFilters } from "../components/TransactionFilters";
-import { TransactionList } from "../components/TransactionList";
+import { TransactionFilters as Filters } from "../components/TransactionFilters";
+import { TransactionResults } from "../components/TransactionResults";
+import { TransactionListSkeleton } from "../components/TransactionListSkeleton";
 
 type SearchParams = {
   from?: string;
@@ -35,7 +37,6 @@ export default async function TransactionListPage({
   const range = vnMonthRange();
   const fromStr = sp.from || vnDateOnly(range.from);
   const toStr = sp.to || vnDateOnly(new Date(range.to.getTime() - 1));
-  // 'to' bao gồm trọn ngày → mốc kết thúc là 00:00 ngày kế tiếp.
   const fromInstant = vnLocalToInstant(`${fromStr}T00:00`);
   const toInstant = new Date(vnLocalToInstant(`${toStr}T00:00`).getTime() + DAY_MS);
   const page = Math.max(0, Math.trunc(Number(sp.page) || 0));
@@ -47,7 +48,7 @@ export default async function TransactionListPage({
       ? (sp.status as PaymentStatus)
       : undefined;
 
-  const { items, hasMore } = await getTransactions({
+  const query: TransactionFilters = {
     businessLine: config.businessLine,
     from: fromInstant,
     to: toInstant,
@@ -55,7 +56,7 @@ export default async function TransactionListPage({
     status,
     q: sp.q?.trim() || undefined,
     page,
-  });
+  };
 
   const moreParams = new URLSearchParams();
   if (sp.q) moreParams.set("q", sp.q);
@@ -64,6 +65,10 @@ export default async function TransactionListPage({
   moreParams.set("from", fromStr);
   moreParams.set("to", toStr);
   moreParams.set("page", String(page + 1));
+
+  // key của Suspense KHÔNG đổi theo page → tải thêm không nhấp nháy skeleton;
+  // chỉ đổi theo bộ lọc để hiện skeleton khi đổi điều kiện.
+  const filterKey = `${fromStr}|${toStr}|${type ?? ""}|${status ?? ""}|${sp.q ?? ""}`;
 
   return (
     <div className="flex flex-col gap-4">
@@ -75,21 +80,14 @@ export default async function TransactionListPage({
         </Link>
       </div>
 
-      <TransactionFilters
+      <Filters
         line={line}
         params={{ q: sp.q, type: sp.type, status: sp.status, from: fromStr, to: toStr }}
       />
 
-      <TransactionList items={items} line={line} />
-
-      {hasMore && (
-        <Link
-          href={`/transactions/${line}?${moreParams.toString()}`}
-          className={buttonVariants({ variant: "outline", size: "sm", className: "self-center" })}
-        >
-          Xem thêm
-        </Link>
-      )}
+      <Suspense key={filterKey} fallback={<TransactionListSkeleton />}>
+        <TransactionResults line={line} query={query} moreHref={`/transactions/${line}?${moreParams}`} />
+      </Suspense>
     </div>
   );
 }
