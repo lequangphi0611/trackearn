@@ -116,3 +116,17 @@ export function logWarn(
     `[${action}] ${message}`,
   );
 }
+
+/**
+ * Log sự kiện bình thường đáng ghi nhận ở mức INFO (mốc nghiệp vụ, hành động
+ * quan trọng) — KHÔNG phải lỗi. Ra stdout (pino), KHÔNG vào DB. Prod LOG_LEVEL
+ * mặc định "info" nên sẽ hiện → dùng tiết kiệm để log khỏi nhiễu.
+ * `extra` phải sanitize (bỏ credential/tiền/PII) như logError/logWarn.
+ */
+export function logInfo(
+  action: string,
+  message: string,
+  extra?: Record<string, unknown>,
+): void {
+  logger.info({ ...withContext(extra), action }, `[${action}] ${message}`);
+}
