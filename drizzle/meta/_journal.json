@@ -15,6 +15,13 @@
       "when": 1782400904721,
       "tag": "0001_tz",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1782527357410,
+      "tag": "0002_slim_blackheart",
+      "breakpoints": true
     }
   ]
 }

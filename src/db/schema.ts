@@ -10,6 +10,7 @@ import {
   integer,
   numeric,
   date,
+  jsonb,
 } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
@@ -203,6 +204,29 @@ export const repairJobs = pgTable("repair_jobs", {
   jobDate: date("job_date"),
   transactionId: uuid("transaction_id").references(() => transactions.id),
 });
+
+// ---------------------------------------------------------------------------
+// Ops/diagnostics — KHÔNG phải nghiệp vụ. Sink cho logError (xem
+// src/db/error-log.ts) ghi lỗi runtime gần đây để dev xem ở /admin khi khách
+// báo lỗi. Không gắn FK tới user (lỗi có thể xảy ra ngoài context đăng nhập).
+// ---------------------------------------------------------------------------
+export const errorLogs = pgTable(
+  "error_logs",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    level: text("level").notNull(), // error (sink chỉ nhận ERROR)
+    action: text("action").notNull(),
+    message: text("message").notNull(),
+    stack: text("stack"),
+    requestId: text("request_id"),
+    userId: text("user_id"), // không FK: lỗi có thể ngoài context auth
+    extra: jsonb("extra"), // route/method/digest/input đã sanitize
+  },
+  (table) => [index("error_logs_created_at_idx").on(table.createdAt)],
+);
 
 export const repairJobParts = pgTable(
   "repair_job_parts",

@@ -35,6 +35,25 @@ export const logger = pino({
       }),
 });
 
+// Sink lỗi (ERROR) — đăng ký từ instrumentation để ghi vào DB cho trang
+// /admin. KHÔNG import `db` ở đây (tránh vòng lặp logger ← db/logger ← logger);
+// instrumentation gọi registerErrorSink(persistError) lúc khởi động.
+export type ErrorSinkEntry = {
+  action: string;
+  message: string;
+  stack?: string;
+  requestId?: string;
+  userId?: string;
+  extra?: Record<string, unknown>;
+};
+type ErrorSink = (entry: ErrorSinkEntry) => void;
+let errorSink: ErrorSink | null = null;
+
+/** Đăng ký nơi nhận lỗi ERROR (vd ghi DB). Gọi 1 lần ở instrumentation. */
+export function registerErrorSink(sink: ErrorSink): void {
+  errorSink = sink;
+}
+
 // Trộn context request hiện tại (requestId/action/userId) vào log nếu có.
 function withContext(extra?: Record<string, unknown>): Record<string, unknown> {
   const ctx = getRequestContext();
@@ -61,6 +80,19 @@ export function logError(
     { ...withContext(extra), action, err },
     `[${action}] ${err instanceof Error ? err.message : "error"}`,
   );
+
+  // Đẩy sang sink (DB) nếu đã đăng ký — sink tự nuốt lỗi của chính nó.
+  if (errorSink) {
+    const ctx = getRequestContext();
+    errorSink({
+      action,
+      message: err instanceof Error ? err.message : String(err),
+      stack: err instanceof Error ? err.stack : undefined,
+      requestId: ctx?.requestId,
+      userId: ctx?.userId,
+      extra,
+    });
+  }
 }
 
 /**

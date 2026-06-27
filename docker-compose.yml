@@ -23,10 +23,20 @@ services:
       DATABASE_URL: postgresql://trackearn:trackearn@db:5432/trackearn
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-change-me-in-development}
       BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
+      # Trang chẩn đoán /admin (HTTP Basic Auth, tách Better Auth) — xem proxy.ts.
+      ADMIN_USER: ${ADMIN_USER:-admin}
+      ADMIN_PASS: ${ADMIN_PASS:-change-me}
     depends_on:
       db:
         condition: service_healthy
     restart: unless-stopped
+    healthcheck:
+      # /api/health ping DB; unhealthy → restart: unless-stopped tự khởi động lại.
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
 
 volumes:
   postgres_data:
