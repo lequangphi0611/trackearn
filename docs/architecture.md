@@ -151,3 +151,32 @@ services:
 - Nginx chạy trực tiếp trên host (không container) để dễ quản lý Certbot
 - `docker compose up -d` khi deploy lần đầu
 - Update: `git pull && docker compose build app && docker compose up -d app`
+
+### Phiên bản & build args
+
+Build kèm commit đang chạy để trang chẩn đoán biết phiên bản:
+
+```bash
+docker compose build app \
+  --build-arg GIT_SHA=$(git rev-parse --short HEAD) \
+  --build-arg BUILD_TIME=$(date -u +%FT%TZ)
+```
+
+`GIT_SHA`/`BUILD_TIME` thành `ENV` trong image → hiện ở `/admin` và `/api/health`.
+
+### Auto-migration
+
+`src/instrumentation.ts` chạy `migrate(...)` (drizzle migrator) **một lần khi
+container khởi động**, qua connection riêng. Lỗi migrate được nuốt (không crash
+app) và hiện trạng thái ở `/admin`. Migration files được copy vào image
+(`COPY .../drizzle ./drizzle`) — không cần chạy `db:migrate` thủ công khi deploy.
+
+### Chẩn đoán & sức khỏe (dev-only)
+
+- **`/api/health`**: công khai, ping DB, trả `{ status, db, version, time }` —
+  Docker healthcheck dùng để tự restart khi app/DB chết.
+- **`/admin`**: trang chẩn đoán cho DEV (sức khỏe DB, phiên bản, migration, lỗi
+  runtime gần đây kèm stack). Bảo vệ bằng **HTTP Basic Auth** (`ADMIN_USER`/
+  `ADMIN_PASS`) trong `proxy.ts`, **tách hoàn toàn Better Auth** — owner/khách
+  không truy cập được. Lỗi `logError(...)` được ghi vào bảng `error_logs` qua
+  sink đăng ký ở instrumentation (xem [logging.md](rules/logging.md)).
