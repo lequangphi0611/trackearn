@@ -16,3 +16,11 @@ export type ActionResult<T = void> =
       code: ErrorCode;
       fieldErrors?: Record<string, string[]>;
     };
+
+// Nhánh lỗi (không phụ thuộc T) — dùng cho helper trả lỗi chung.
+export type ActionError = {
+  success: false;
+  error: string;
+  code: ErrorCode;
+  fieldErrors?: Record<string, string[]>;
+};

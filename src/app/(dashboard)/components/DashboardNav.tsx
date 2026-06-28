@@ -2,41 +2,65 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Menu, MenuContent, MenuItem, MenuTrigger } from "@/components/ui/menu";
+import { TRANSACTION_LINES } from "@/lib/transaction-lines";
 
-type NavItem = { href: string; label: string; ownerOnly?: boolean };
+function linkClass(active: boolean) {
+  return cn(
+    "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+    active
+      ? "bg-muted text-foreground"
+      : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+  );
+}
 
-// Phase 1: chỉ các route đã build. Mục mới thêm dần theo từng phase.
-const NAV_ITEMS: NavItem[] = [
-  { href: "/", label: "Tổng quan" },
-  { href: "/settings", label: "Cài đặt" },
-];
-
-export function DashboardNav({ role }: { role: string }) {
+export function DashboardNav() {
   const pathname = usePathname();
-  const items = NAV_ITEMS.filter((item) => !item.ownerOnly || role === "owner");
 
   return (
-    <nav className="flex items-center gap-1">
-      {items.map((item) => {
-        const active =
-          item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            aria-current={active ? "page" : undefined}
-            className={cn(
-              "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
-              active
-                ? "bg-muted text-foreground"
-                : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
-            )}
-          >
-            {item.label}
-          </Link>
-        );
-      })}
+    // Desktop dùng thanh ngang; mobile chuyển sang BottomNav (xem layout).
+    <nav className="hidden items-center gap-1 sm:flex">
+      <Link
+        href="/"
+        aria-current={pathname === "/" ? "page" : undefined}
+        className={linkClass(pathname === "/")}
+      >
+        Tổng quan
+      </Link>
+
+      <Menu>
+        <MenuTrigger
+          className={cn(
+            linkClass(pathname.startsWith("/transactions")),
+            "inline-flex items-center gap-1",
+          )}
+        >
+          Giao dịch
+          <ChevronDown className="size-3.5" />
+        </MenuTrigger>
+        <MenuContent>
+          {TRANSACTION_LINES.map((l) => (
+            <MenuItem
+              key={l.slug}
+              render={<Link href={`/transactions/${l.slug}`} />}
+            >
+              {l.label}
+            </MenuItem>
+          ))}
+        </MenuContent>
+      </Menu>
+
+      <Link href="/debts" className={linkClass(pathname.startsWith("/debts"))}>
+        Công nợ
+      </Link>
+      <Link
+        href="/settings"
+        className={linkClass(pathname.startsWith("/settings"))}
+      >
+        Cài đặt
+      </Link>
     </nav>
   );
 }

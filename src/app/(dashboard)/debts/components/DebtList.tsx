@@ -1,0 +1,61 @@
+import Link from "next/link";
+import { cn } from "@/lib/utils";
+import { formatCurrency, formatDate } from "@/lib/format";
+import { isOverdue } from "@/lib/date";
+import { Badge } from "@/components/ui/badge";
+import { Money } from "@/components/Money";
+import { businessLineLabel } from "@/lib/constants";
+import type { getDebts } from "@/queries/debts";
+
+type DebtItem = Awaited<ReturnType<typeof getDebts>>["items"][number];
+
+export function DebtList({
+  items,
+  highlightFrom,
+}: {
+  items: DebtItem[];
+  highlightFrom?: number;
+}) {
+  if (items.length === 0) {
+    return <p className="py-10 text-center text-sm text-muted-foreground">Không có công nợ.</p>;
+  }
+
+  return (
+    <ul className="flex flex-col gap-2">
+      {items.map((d, index) => {
+        const remaining = d.total - d.paid;
+        const overdue = isOverdue(d.dueDate, d.settledAt);
+        const isNew = highlightFrom !== undefined && index >= highlightFrom;
+        return (
+          <li key={d.id}>
+            <Link
+              href={`/debts/${d.id}`}
+              className={cn(
+                "block rounded-lg border border-border p-3 transition-colors hover:bg-muted/50",
+                isNew && "row-enter",
+              )}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <span className="truncate text-sm font-medium">{d.counterpartyName}</span>
+                <Money amount={remaining} className="text-sm font-semibold" />
+              </div>
+              <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+                <span>
+                  Đã trả <span className="tabular">{formatCurrency(d.paid)}</span> /{" "}
+                  <span className="tabular">{formatCurrency(d.total)}</span>
+                </span>
+                {d.dueDate && <span>· Hẹn {formatDate(d.dueDate)}</span>}
+                <span>· {businessLineLabel(d.businessLine)}</span>
+                {d.settledAt ? (
+                  <Badge variant="success">Đã tất toán</Badge>
+                ) : (
+                  overdue && <Badge variant="danger">Quá hạn</Badge>
+                )}
+              </div>
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}

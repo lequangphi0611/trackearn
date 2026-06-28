@@ -20,14 +20,14 @@ export default async function RegisterPage() {
 
   return (
     <Card>
-      <CardHeader className="text-center">
-        <CardTitle className="text-xl">
+      <CardHeader>
+        <CardTitle className="text-base">
           {hasOwner ? "Đăng ký đã đóng" : "Tạo tài khoản chủ hộ"}
         </CardTitle>
         <CardDescription>
           {hasOwner
             ? "Đã có chủ tài khoản. Liên hệ chủ hộ để được cấp tài khoản."
-            : "Tài khoản quản trị đầu tiên của cửa hàng."}
+            : "Tài khoản đầu tiên là chủ hộ — quản lý toàn bộ thu chi và cấp tài khoản cho người nhà."}
         </CardDescription>
       </CardHeader>
       <CardContent>

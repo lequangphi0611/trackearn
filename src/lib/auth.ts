@@ -8,10 +8,20 @@ import * as schema from "@/db/schema";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, { provider: "pg", schema }),
-  emailAndPassword: { enabled: true, minPasswordLength: 8 },
+  // autoSignIn:false — signUpEmail (chỉ dùng cho đăng ký owner đầu tiên) KHÔNG
+  // tự tạo session. registerOwner promote role=owner trong DB rồi mới signIn để
+  // session snapshot đúng role (tránh cookieCache giữ role "member" cũ).
+  emailAndPassword: { enabled: true, minPasswordLength: 8, autoSignIn: false },
   user: {
     additionalFields: {
-      role: { type: "string", required: false, defaultValue: "member", input: true },
+      // Plugin admin (bên dưới) quản lý `role` với input:false — KHÔNG thể set
+      // role khi signup (chống tự nâng quyền). Để input:false cho khớp thực tế.
+      role: {
+        type: "string",
+        required: false,
+        defaultValue: "member",
+        input: false,
+      },
     },
   },
   session: {
