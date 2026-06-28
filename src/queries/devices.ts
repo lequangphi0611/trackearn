@@ -25,6 +25,18 @@ export async function getStockCapital(): Promise<number> {
   return Number(row?.total ?? 0);
 }
 
+/** Tóm tắt kho máy còn hàng: số lượng + tổng vốn (1 query, cho hub /kho). */
+export async function getInStockSummary(): Promise<{ count: number; capital: number }> {
+  const [row] = await db
+    .select({
+      count: sql<string>`count(*)`,
+      capital: sql<string>`coalesce(sum(${devices.buyPrice}), 0)`,
+    })
+    .from(devices)
+    .where(eq(devices.status, "in_stock"));
+  return { count: Number(row?.count ?? 0), capital: Number(row?.capital ?? 0) };
+}
+
 /** Danh sách máy có lọc + phân trang load-more (20 dòng), mới nhất trước. */
 export async function getDevices(f: DeviceFilters) {
   const page = Math.min(f.page ?? 0, MAX_PAGE);

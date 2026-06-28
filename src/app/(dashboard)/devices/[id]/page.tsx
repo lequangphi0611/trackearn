@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { EditDeviceForm } from "../components/EditDeviceForm";
 import { SellDeviceDialog } from "../components/SellDeviceDialog";
 import { CancelSellDialog } from "../components/CancelSellDialog";
+import { DeleteDeviceButton } from "../components/DeleteDeviceButton";
 
 export default async function DeviceDetailPage({
   params,
@@ -103,6 +104,14 @@ export default async function DeviceDetailPage({
           </p>
         )}
       </div>
+
+      {/* Xoá máy — chỉ khi còn hàng (máy đã bán phải hủy bán trước). Hành động
+          hiếm/nguy hiểm → tách riêng, nhấn nhẹ. */}
+      {!sold && (
+        <div className="mt-2 flex justify-end border-t border-border pt-3">
+          <DeleteDeviceButton id={d.id} />
+        </div>
+      )}
     </div>
   );
 }

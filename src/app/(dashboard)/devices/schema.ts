@@ -54,3 +54,5 @@ export const sellDeviceSchema = z
   );
 
 export const cancelSellSchema = z.object({ id: z.string().uuid() });
+
+export const deleteDeviceSchema = z.object({ id: z.string().uuid() });

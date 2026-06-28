@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { House, Receipt, HandCoins, Settings, Plus, Smartphone } from "lucide-react";
+import { House, Receipt, HandCoins, Boxes, Plus } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "@/components/ui/menu";
@@ -27,22 +27,19 @@ const LEFT: Tab[] = [
 ];
 const RIGHT: Tab[] = [
   {
-    href: "/devices",
-    label: "Thiết bị",
-    icon: Smartphone,
-    match: (p) => p.startsWith("/devices"),
-  },
-  {
     href: "/debts",
     label: "Công nợ",
     icon: HandCoins,
     match: (p) => p.startsWith("/debts"),
   },
   {
-    href: "/settings",
-    label: "Cài đặt",
-    icon: Settings,
-    match: (p) => p.startsWith("/settings"),
+    // Hub hàng hoá: Thiết bị nay, Phụ tùng (Phase 3b) sau — tab active xuyên các
+    // route kho để không phải thêm tab mới mỗi mảng.
+    href: "/kho",
+    label: "Kho",
+    icon: Boxes,
+    match: (p) =>
+      p.startsWith("/kho") || p.startsWith("/devices") || p.startsWith("/spare-parts"),
   },
 ];
 

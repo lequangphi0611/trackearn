@@ -15,6 +15,7 @@ import { zodActionError } from "@/lib/form";
 import {
   cancelSellSchema,
   createDeviceSchema,
+  deleteDeviceSchema,
   sellDeviceSchema,
   updateDeviceSchema,
 } from "./schema";
@@ -383,6 +384,81 @@ export const cancelSell = withActionContext(
         success: false,
         code: ErrorCode.INTERNAL_ERROR,
         error: "Không thể hủy bán, thử lại.",
+      };
+    }
+  },
+);
+
+export const deleteDevice = withActionContext(
+  "deleteDevice",
+  async (_prev: ActionResult | null, formData: FormData): Promise<ActionResult> => {
+    const session = await getCurrentSession();
+    if (!session) return authError();
+    setUserId(session.user.id);
+
+    const parsed = deleteDeviceSchema.safeParse(Object.fromEntries(formData));
+    if (!parsed.success) return zodActionError(parsed.error);
+
+    try {
+      const result = await db.transaction(async (tx) => {
+        const [device] = await tx
+          .select()
+          .from(devices)
+          .where(eq(devices.id, parsed.data.id))
+          .for("update")
+          .limit(1);
+        if (!device)
+          return { ok: false as const, code: ErrorCode.NOT_FOUND, error: "Không tìm thấy máy." };
+        // Đã bán → phải hủy bán trước (gỡ giao dịch/công nợ bán).
+        if (device.status !== "in_stock")
+          return {
+            ok: false as const,
+            code: ErrorCode.CONFLICT,
+            error: "Máy đã bán — hủy bán trước khi xoá.",
+          };
+
+        // Chặn nếu công nợ mua đã trả một phần (nhất quán deleteTransaction).
+        if (device.buyTransactionId) {
+          const [debt] = await tx
+            .select({ paid: debts.paid })
+            .from(debts)
+            .where(eq(debts.transactionId, device.buyTransactionId))
+            .for("update")
+            .limit(1);
+          if (debt && debt.paid > 0)
+            return {
+              ok: false as const,
+              code: ErrorCode.CONFLICT,
+              error: "Không thể xoá: công nợ mua đã trả một phần.",
+            };
+        }
+
+        // Xoá device trước (gỡ FK buy_transaction_id) rồi xoá giao dịch mua
+        // (cascade xoá công nợ payable chưa trả).
+        const buyTxnId = device.buyTransactionId;
+        await tx.delete(devices).where(eq(devices.id, device.id));
+        if (buyTxnId) await tx.delete(transactions).where(eq(transactions.id, buyTxnId));
+        return { ok: true as const };
+      });
+
+      if (!result.ok) {
+        logWarn("deleteDevice", result.error, {
+          code: result.code,
+          input: { id: parsed.data.id },
+        });
+        return { success: false, code: result.code, error: result.error };
+      }
+      revalidatePath("/devices");
+      revalidatePath("/kho");
+      revalidatePath("/transactions/thiet-bi");
+      revalidatePath("/debts");
+      return { success: true, data: undefined };
+    } catch (err) {
+      logError("deleteDevice", err, { input: { id: parsed.data.id } });
+      return {
+        success: false,
+        code: ErrorCode.INTERNAL_ERROR,
+        error: "Không thể xoá máy, thử lại.",
       };
     }
   },

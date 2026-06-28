@@ -52,17 +52,18 @@ export function DashboardNav() {
         </MenuContent>
       </Menu>
 
-      <Link href="/devices" className={linkClass(pathname.startsWith("/devices"))}>
-        Thiết bị
-      </Link>
       <Link href="/debts" className={linkClass(pathname.startsWith("/debts"))}>
         Công nợ
       </Link>
       <Link
-        href="/settings"
-        className={linkClass(pathname.startsWith("/settings"))}
+        href="/kho"
+        className={linkClass(
+          pathname.startsWith("/kho") ||
+            pathname.startsWith("/devices") ||
+            pathname.startsWith("/spare-parts"),
+        )}
       >
-        Cài đặt
+        Kho
       </Link>
     </nav>
   );
