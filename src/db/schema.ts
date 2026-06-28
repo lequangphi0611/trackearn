@@ -198,14 +198,18 @@ export const spareParts = pgTable("spare_parts", {
     .notNull(),
 });
 
-export const repairJobs = pgTable("repair_jobs", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  customerName: text("customer_name").notNull(),
-  laborFee: bigint("labor_fee", { mode: "number" }).default(0).notNull(),
-  note: text("note"),
-  jobDate: date("job_date"),
-  transactionId: uuid("transaction_id").references(() => transactions.id),
-});
+export const repairJobs = pgTable(
+  "repair_jobs",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    customerName: text("customer_name").notNull(),
+    laborFee: bigint("labor_fee", { mode: "number" }).default(0).notNull(),
+    note: text("note"),
+    jobDate: date("job_date"),
+    transactionId: uuid("transaction_id").references(() => transactions.id),
+  },
+  (table) => [index("repair_jobs_job_date_idx").on(table.jobDate)], // lọc + sắp theo ngày
+);
 
 export const repairJobParts = pgTable(
   "repair_job_parts",

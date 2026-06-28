@@ -53,6 +53,14 @@ export default async function TransactionDetailPage({
                   </Link>
                 </>
               )}
+            {t.sourceKind === "repair_job" && t.sourceId && (
+              <>
+                {" "}
+                <Link href={`/repair-jobs/${t.sourceId}`} className="font-medium underline">
+                  Mở job →
+                </Link>
+              </>
+            )}
           </AlertDescription>
         </Alert>
       ) : (
