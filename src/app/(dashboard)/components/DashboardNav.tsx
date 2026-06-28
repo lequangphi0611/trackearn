@@ -52,6 +52,9 @@ export function DashboardNav() {
         </MenuContent>
       </Menu>
 
+      <Link href="/devices" className={linkClass(pathname.startsWith("/devices"))}>
+        Thiết bị
+      </Link>
       <Link href="/debts" className={linkClass(pathname.startsWith("/debts"))}>
         Công nợ
       </Link>

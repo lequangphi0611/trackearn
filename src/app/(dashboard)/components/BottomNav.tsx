@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { House, Receipt, HandCoins, Settings, Plus } from "lucide-react";
+import { House, Receipt, HandCoins, Settings, Plus, Smartphone } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "@/components/ui/menu";
@@ -26,6 +26,12 @@ const LEFT: Tab[] = [
   },
 ];
 const RIGHT: Tab[] = [
+  {
+    href: "/devices",
+    label: "Thiết bị",
+    icon: Smartphone,
+    match: (p) => p.startsWith("/devices"),
+  },
   {
     href: "/debts",
     label: "Công nợ",

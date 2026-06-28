@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 type SubmitButtonProps = {
   children: React.ReactNode;
   size?: React.ComponentProps<typeof Button>["size"];
+  variant?: React.ComponentProps<typeof Button>["variant"];
   fullWidth?: boolean;
   className?: string;
 };
@@ -19,6 +20,7 @@ type SubmitButtonProps = {
 export function SubmitButton({
   children,
   size,
+  variant,
   fullWidth,
   className,
 }: SubmitButtonProps) {
@@ -27,6 +29,7 @@ export function SubmitButton({
     <Button
       type="submit"
       size={size}
+      variant={variant}
       disabled={pending}
       className={cn(fullWidth && "w-full", className)}
     >
