@@ -181,7 +181,10 @@ export const devices = pgTable("devices", {
   // Liên kết tới giao dịch tự sinh (chi khi mua / thu khi bán) — xem spec/devices.md.
   buyTransactionId: uuid("buy_transaction_id").references(() => transactions.id),
   sellTransactionId: uuid("sell_transaction_id").references(() => transactions.id),
-});
+}, (table) => [
+  index("devices_status_idx").on(table.status), // lọc còn hàng / đã bán
+  index("devices_buy_date_idx").on(table.buyDate), // lọc + sắp theo ngày mua
+]);
 
 export const spareParts = pgTable("spare_parts", {
   id: uuid("id").defaultRandom().primaryKey(),
