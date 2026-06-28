@@ -1,9 +1,12 @@
-export type ErrorCode =
-  | "VALIDATION_ERROR"
-  | "AUTH_ERROR"
-  | "NOT_FOUND"
-  | "CONFLICT"
-  | "INTERNAL_ERROR";
+export const ErrorCode = {
+  VALIDATION_ERROR: "VALIDATION_ERROR",
+  AUTH_ERROR: "AUTH_ERROR",
+  NOT_FOUND: "NOT_FOUND",
+  CONFLICT: "CONFLICT",
+  INTERNAL_ERROR: "INTERNAL_ERROR",
+} as const;
+
+export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];
 
 export type ActionResult<T = void> =
   | { success: true; data: T }
