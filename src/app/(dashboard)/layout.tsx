@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getCurrentSession } from "@/queries/session";
 import { Logo } from "@/components/brand/Logo";
 import { DashboardNav } from "./components/DashboardNav";
-import { SignOutButton } from "./components/SignOutButton";
+import { UserMenu } from "./components/UserMenu";
 import { BottomNav } from "./components/BottomNav";
 
 export default async function DashboardLayout({
@@ -29,7 +29,7 @@ export default async function DashboardLayout({
             </Link>
             <DashboardNav />
           </div>
-          <SignOutButton />
+          <UserMenu name={session.user.name} />
         </div>
       </header>
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 pt-6 pb-24 sm:pb-8">

@@ -19,8 +19,15 @@
     {
       "idx": 2,
       "version": "7",
-      "when": 1782527357410,
-      "tag": "0002_slim_blackheart",
+      "when": 1782606366259,
+      "tag": "0002_low_nightcrawler",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1782700000000,
+      "tag": "0003_slim_blackheart",
       "breakpoints": true
     }
   ]

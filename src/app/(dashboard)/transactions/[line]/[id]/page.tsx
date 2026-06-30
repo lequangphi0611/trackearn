@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { getTransactionLine } from "@/lib/transaction-lines";
 import { getTransactionById } from "@/queries/transactions";
 import { getExpenseCategories } from "@/queries/expense-categories";
@@ -43,6 +44,15 @@ export default async function TransactionDetailPage({
           <AlertDescription>
             Giao dịch này sinh tự động từ nguồn ({t.sourceKind}). Mọi chỉnh sửa thực hiện ở
             màn nguồn.
+            {(t.sourceKind === "device_buy" || t.sourceKind === "device_sell") &&
+              t.sourceId && (
+                <>
+                  {" "}
+                  <Link href={`/devices/${t.sourceId}`} className="font-medium underline">
+                    Mở máy →
+                  </Link>
+                </>
+              )}
           </AlertDescription>
         </Alert>
       ) : (
