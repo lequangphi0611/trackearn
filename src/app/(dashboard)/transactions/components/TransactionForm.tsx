@@ -18,17 +18,22 @@ type Category = { id: string; name: string };
 export function TransactionForm({
   line,
   expenseOnly,
+  lockType,
   defaultDateTime,
   categories,
 }: {
   line: string;
   expenseOnly: boolean;
+  /** Ẩn công tắc Thu/Chi, cố định loại — dùng khi màn cha đã tự quyết loại giao dịch. */
+  lockType?: "income";
   defaultDateTime: string;
   categories: Category[];
 }) {
   const router = useRouter();
   const [state, formAction] = useActionState(createTransaction, null);
-  const [type, setType] = useState<"income" | "expense">(expenseOnly ? "expense" : "income");
+  const [type, setType] = useState<"income" | "expense">(
+    expenseOnly ? "expense" : (lockType ?? "income"),
+  );
   const [amount, setAmount] = useState("");
   const [payLater, setPayLater] = useState(false);
   const [paid, setPaid] = useState("");
@@ -55,7 +60,7 @@ export function TransactionForm({
         </Alert>
       )}
 
-      {!expenseOnly && (
+      {!expenseOnly && !lockType && (
         <div className="flex flex-col gap-1.5">
           <Label>Loại</Label>
           <div className="flex gap-2">

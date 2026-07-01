@@ -37,6 +37,20 @@ export async function getInStockSummary(): Promise<{ count: number; capital: num
   return { count: Number(row?.count ?? 0), capital: Number(row?.capital ?? 0) };
 }
 
+/** Danh sách máy còn hàng gọn nhẹ, cho ô chọn "gắn với máy" khi ghi Thu mảng thiết bị. */
+export async function getInStockDevicesForPicker() {
+  return db
+    .select({
+      id: devices.id,
+      name: devices.name,
+      conditionNote: devices.conditionNote,
+      buyPrice: devices.buyPrice,
+    })
+    .from(devices)
+    .where(eq(devices.status, "in_stock"))
+    .orderBy(desc(devices.buyDate), desc(devices.id));
+}
+
 /** Danh sách máy có lọc + phân trang load-more (20 dòng), mới nhất trước. */
 export async function getDevices(f: DeviceFilters) {
   const page = Math.min(f.page ?? 0, MAX_PAGE);
