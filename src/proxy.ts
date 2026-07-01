@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionCookie } from "better-auth/cookies";
+import { logInfo } from './lib/logger';
 
 const AUTH_ROUTES = ["/login", "/register"];
 
@@ -15,6 +16,7 @@ function unauthorized(): NextResponse {
 function checkAdminBasicAuth(request: NextRequest): NextResponse | null {
   const user = process.env.ADMIN_USER;
   const pass = process.env.ADMIN_PASS;
+  logInfo("Checking admin basic auth.", `user=${user}, pass=${pass ? "****" : undefined}, url=${request.url}`);
   // Chưa cấu hình creds → khóa cứng (không để hớ hênh mở /admin).
   if (!user || !pass) return unauthorized();
 

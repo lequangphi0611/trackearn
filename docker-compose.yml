@@ -33,8 +33,10 @@ services:
       - "3000:3000"
     environment:
       DATABASE_URL: postgresql://trackearn:trackearn@db:5432/trackearn
-      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-0XXiUtDEureMNE/4QOf7TGPfwLGOqEX6eLI9j6R5izE=}
-      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL}
+      ADMIN_USER: ${ADMIN_USER}
+      ADMIN_PASS: ${ADMIN_PASS}
     depends_on:
       db:
         condition: service_healthy
