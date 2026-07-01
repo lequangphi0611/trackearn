@@ -18,6 +18,7 @@ import {
 import { getFormError } from "@/lib/form";
 import { formatCurrency } from "@/lib/format";
 import { updateDevice } from "../actions";
+import { ConditionNoteField } from "./ConditionNoteField";
 
 export function EditDeviceForm({
   id,
@@ -84,7 +85,10 @@ export function EditDeviceForm({
         )}
 
         <Field label="Tên máy" name="name" defaultValue={name} required error={fieldErrors?.name?.[0]} />
-        <Field label="Tình trạng / ghi chú" name="conditionNote" defaultValue={conditionNote ?? ""} />
+        <ConditionNoteField
+          defaultValue={conditionNote ?? ""}
+          error={fieldErrors?.conditionNote?.[0]}
+        />
 
         {/* Máy đã bán: chỉ sửa tên + tình trạng (server cũng chặn). */}
         {!sold && (
