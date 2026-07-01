@@ -1,0 +1,1 @@
+CREATE INDEX "repair_jobs_job_date_idx" ON "repair_jobs" USING btree ("job_date");

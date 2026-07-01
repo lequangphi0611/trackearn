@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { House, Receipt, HandCoins, Boxes, Plus } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Menu, MenuContent, MenuItem, MenuTrigger } from "@/components/ui/menu";
+import { Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger } from "@/components/ui/menu";
 import { TRANSACTION_LINES } from "@/lib/transaction-lines";
 
 type Tab = {
@@ -97,6 +97,8 @@ export function BottomNav() {
                   {l.label}
                 </MenuItem>
               ))}
+              <MenuSeparator className="my-1 h-px bg-border" />
+              <MenuItem render={<Link href="/repair-jobs/new" />}>Job sửa xe múc</MenuItem>
             </MenuContent>
           </Menu>
         </div>

@@ -14,6 +14,7 @@ import { StatusBadge } from "../../components/StatusBadge";
 const SOURCE_KIND_LABELS: Record<string, string> = {
   device_buy: "Mua thiết bị",
   device_sell: "Bán thiết bị",
+  repair_job: "Job sửa chữa",
 };
 
 export default async function TransactionDetailPage({
@@ -107,6 +108,14 @@ export default async function TransactionDetailPage({
               className={buttonVariants({ variant: "default", className: "w-full justify-center" })}
             >
               Xem thiết bị →
+            </Link>
+          )}
+          {t.sourceKind === "repair_job" && t.sourceId && (
+            <Link
+              href={`/repair-jobs/${t.sourceId}`}
+              className={buttonVariants({ variant: "default", className: "w-full justify-center" })}
+            >
+              Xem job sửa chữa →
             </Link>
           )}
         </>
