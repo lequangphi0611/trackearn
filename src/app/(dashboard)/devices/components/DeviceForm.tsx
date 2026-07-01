@@ -8,6 +8,7 @@ import { Field } from "@/components/forms/Field";
 import { SubmitButton } from "@/components/forms/SubmitButton";
 import { getFormError } from "@/lib/form";
 import { createDevice } from "../actions";
+import { ConditionNoteField } from "./ConditionNoteField";
 
 export function DeviceForm({ defaultDate }: { defaultDate: string }) {
   const router = useRouter();
@@ -38,7 +39,7 @@ export function DeviceForm({ defaultDate }: { defaultDate: string }) {
       )}
 
       <Field label="Tên máy" name="name" required error={fieldErrors?.name?.[0]} />
-      <Field label="Tình trạng / ghi chú" name="conditionNote" />
+      <ConditionNoteField error={fieldErrors?.conditionNote?.[0]} />
       <Field
         label="Giá mua (₫)"
         name="buyPrice"
