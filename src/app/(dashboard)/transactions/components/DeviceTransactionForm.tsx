@@ -37,7 +37,7 @@ type Mode = (typeof MODES)[number]["key"];
  * (dùng chung SellDeviceForm với dialog "Bán ra" trên /devices/[id]) thay vì
  * bắt rời màn sang /devices như trước.
  */
-export function ThietBiTransactionForm({
+export function DeviceTransactionForm({
   devices,
   categories,
   defaultDateTime,

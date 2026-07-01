@@ -4,7 +4,7 @@ import { getExpenseCategories } from "@/queries/expense-categories";
 import { getInStockDevicesForPicker } from "@/queries/devices";
 import { vnDateTimeLocal, vnTodayISODate } from "@/lib/date";
 import { TransactionForm } from "../../components/TransactionForm";
-import { ThietBiTransactionForm } from "../../components/ThietBiTransactionForm";
+import { DeviceTransactionForm } from "../../components/DeviceTransactionForm";
 
 export default async function NewTransactionPage({
   params,
@@ -22,7 +22,7 @@ export default async function NewTransactionPage({
       <h1 className="text-lg font-semibold">Nhập giao dịch — {config.label}</h1>
 
       {line === "thiet-bi" ? (
-        <ThietBiForm categories={categories} />
+        <DeviceTransactionFormContainer categories={categories} />
       ) : (
         <TransactionForm
           line={line}
@@ -35,10 +35,14 @@ export default async function NewTransactionPage({
   );
 }
 
-async function ThietBiForm({ categories }: { categories: { id: string; name: string }[] }) {
+async function DeviceTransactionFormContainer({
+  categories,
+}: {
+  categories: { id: string; name: string }[];
+}) {
   const devices = await getInStockDevicesForPicker();
   return (
-    <ThietBiTransactionForm
+    <DeviceTransactionForm
       devices={devices}
       categories={categories}
       defaultDateTime={vnDateTimeLocal()}
