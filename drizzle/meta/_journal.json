@@ -26,8 +26,15 @@
     {
       "idx": 3,
       "version": "7",
+      "when": 1782700000000,
+      "tag": "0003_slim_blackheart",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
       "when": 1782620172052,
-      "tag": "0003_eminent_christian_walker",
+      "tag": "0004_eminent_christian_walker",
       "breakpoints": true
     }
   ]

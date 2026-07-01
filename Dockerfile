@@ -1,10 +1,11 @@
-FROM node:20-alpine AS base
+FROM node:22-alpine AS base
 RUN corepack enable pnpm
 
 # ---- deps: install production + dev dependencies ----
 FROM base AS deps
 WORKDIR /app
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+ENV PNPM_IGNORE_SCRIPTS=false
 RUN pnpm install --frozen-lockfile
 
 # ---- builder: build Next.js ----

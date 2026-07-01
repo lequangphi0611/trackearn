@@ -3,32 +3,37 @@
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Field } from "@/components/forms/Field";
+import { SegmentedToggle } from "@/components/forms/SegmentedToggle";
 import { SubmitButton } from "@/components/forms/SubmitButton";
-import { Button } from "@/components/ui/button";
 import { getFormError } from "@/lib/form";
 import { createTransaction } from "../actions";
 
 type Category = { id: string; name: string };
 
+const TYPE_OPTIONS = [
+  { key: "income", label: "Thu" },
+  { key: "expense", label: "Chi" },
+] as const;
+
 export function TransactionForm({
   line,
-  expenseOnly,
+  lockType,
   defaultDateTime,
   categories,
 }: {
   line: string;
-  expenseOnly: boolean;
+  /** Cố định loại giao dịch, ẩn công tắc Thu/Chi — dùng khi màn cha đã tự quyết loại. */
+  lockType?: "income" | "expense";
   defaultDateTime: string;
   categories: Category[];
 }) {
   const router = useRouter();
   const [state, formAction] = useActionState(createTransaction, null);
-  const [type, setType] = useState<"income" | "expense">(expenseOnly ? "expense" : "income");
+  const [type, setType] = useState<"income" | "expense">(lockType ?? "income");
   const [amount, setAmount] = useState("");
   const [payLater, setPayLater] = useState(false);
   const [paid, setPaid] = useState("");
@@ -55,23 +60,10 @@ export function TransactionForm({
         </Alert>
       )}
 
-      {!expenseOnly && (
+      {!lockType && (
         <div className="flex flex-col gap-1.5">
           <Label>Loại</Label>
-          <div className="flex gap-2">
-            {(["income", "expense"] as const).map((t) => (
-              <Button
-                key={t}
-                type="button"
-                variant={type === t ? "default" : "outline"}
-                size="sm"
-                className={cn("flex-1")}
-                onClick={() => setType(t)}
-              >
-                {t === "income" ? "Thu" : "Chi"}
-              </Button>
-            ))}
-          </div>
+          <SegmentedToggle options={TYPE_OPTIONS} value={type} onChange={setType} fill />
         </div>
       )}
 

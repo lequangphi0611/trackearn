@@ -15,17 +15,33 @@ services:
       timeout: 5s
       retries: 5
 
+  migrate:
+    build:
+      context: .
+      target: builder
+    command: ["pnpm", "db:migrate"]
+    environment:
+      DATABASE_URL: postgresql://trackearn:trackearn@db:5432/trackearn
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
   app:
     build: .
     ports:
       - "3000:3000"
     environment:
       DATABASE_URL: postgresql://trackearn:trackearn@db:5432/trackearn
-      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-change-me-in-development}
-      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL}
+      ADMIN_USER: ${ADMIN_USER}
+      ADMIN_PASS: ${ADMIN_PASS}
     depends_on:
       db:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     restart: unless-stopped
 
 volumes:

@@ -1,6 +1,6 @@
 {
-  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-  "prevId": "62e83b90-b414-449d-8611-72789651ded0",
+  "id": "8158ff58-6526-4e92-b423-7afd0703ca21",
+  "prevId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -640,7 +640,23 @@
           "notNull": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "repair_jobs_job_date_idx": {
+          "name": "repair_jobs_job_date_idx",
+          "columns": [
+            {
+              "expression": "job_date",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "repair_jobs_transaction_id_transactions_id_fk": {
           "name": "repair_jobs_transaction_id_transactions_id_fk",
