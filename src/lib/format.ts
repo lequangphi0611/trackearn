@@ -55,3 +55,13 @@ const timeFormatter = new Intl.DateTimeFormat("vi-VN", {
 export function formatTime(value: Date | string): string {
   return timeFormatter.format(typeof value === "string" ? new Date(value) : value);
 }
+
+/**
+ * % thay đổi so kỳ trước → "+12%" / "−8%"; `null` khi kỳ trước = 0 (UI hiện "—").
+ * Mẫu số |prev| để kỳ trước âm (lãi âm) không lật dấu chiều thay đổi.
+ */
+export function formatPercentChange(current: number, prev: number): string | null {
+  if (prev === 0) return null;
+  const pct = Math.round(((current - prev) / Math.abs(prev)) * 100);
+  return `${pct > 0 ? "+" : ""}${pct}%`;
+}

@@ -43,12 +43,15 @@ export function DeviceTransactionForm({
   categories,
   defaultDateTime,
   defaultDate,
+  onSuccess,
 }: {
   line: string;
   devices: DeviceOption[];
   categories: Category[];
   defaultDateTime: string;
   defaultDate: string;
+  /** Có mặt → thay điều hướng mặc định về list sau khi lưu (vd quick-entry đóng dialog). */
+  onSuccess?: () => void;
 }) {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>(devices.length > 0 ? "sell" : "income");
@@ -108,7 +111,7 @@ export function DeviceTransactionForm({
                 key={selected.value}
                 id={selected.value}
                 defaultDate={defaultDate}
-                onSuccess={() => router.push(`/transactions/${line}`)}
+                onSuccess={onSuccess ?? (() => router.push(`/transactions/${line}`))}
                 footer={
                   <SubmitButton size="lg" fullWidth>
                     Lưu giao dịch
@@ -125,6 +128,7 @@ export function DeviceTransactionForm({
           lockType="income"
           defaultDateTime={defaultDateTime}
           categories={categories}
+          onSuccess={onSuccess}
         />
       )}
 
@@ -134,6 +138,7 @@ export function DeviceTransactionForm({
           lockType="expense"
           defaultDateTime={defaultDateTime}
           categories={categories}
+          onSuccess={onSuccess}
         />
       )}
     </div>

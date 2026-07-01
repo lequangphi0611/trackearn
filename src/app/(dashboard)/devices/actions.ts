@@ -106,6 +106,7 @@ export const createDevice = withActionContext(
         return device.id;
       });
 
+      revalidatePath("/");
       revalidatePath("/devices");
       revalidatePath("/transactions/thiet-bi");
       revalidatePath("/debts");
@@ -213,6 +214,7 @@ export const updateDevice = withActionContext(
         logWarn("updateDevice", result.error, { code: result.code, input: { id: d.id } });
         return { success: false, code: result.code, error: result.error };
       }
+      revalidatePath("/");
       revalidatePath("/devices");
       revalidatePath(`/devices/${d.id}`);
       revalidatePath("/transactions/thiet-bi");
@@ -297,6 +299,7 @@ export const sellDevice = withActionContext(
         logWarn("sellDevice", result.error, { code: result.code, input: { id: d.id } });
         return { success: false, code: result.code, error: result.error };
       }
+      revalidatePath("/");
       revalidatePath("/devices");
       revalidatePath(`/devices/${d.id}`);
       revalidatePath("/transactions/thiet-bi");
@@ -373,6 +376,7 @@ export const cancelSell = withActionContext(
         });
         return { success: false, code: result.code, error: result.error };
       }
+      revalidatePath("/");
       revalidatePath("/devices");
       revalidatePath(`/devices/${parsed.data.id}`);
       revalidatePath("/transactions/thiet-bi");
@@ -448,6 +452,7 @@ export const deleteDevice = withActionContext(
         });
         return { success: false, code: result.code, error: result.error };
       }
+      revalidatePath("/");
       revalidatePath("/devices");
       revalidatePath("/kho");
       revalidatePath("/transactions/thiet-bi");

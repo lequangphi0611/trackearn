@@ -24,12 +24,15 @@ export function TransactionForm({
   lockType,
   defaultDateTime,
   categories,
+  onSuccess,
 }: {
   line: string;
   /** Cố định loại giao dịch, ẩn công tắc Thu/Chi — dùng khi màn cha đã tự quyết loại. */
   lockType?: "income" | "expense";
   defaultDateTime: string;
   categories: Category[];
+  /** Có mặt → thay điều hướng mặc định về list sau khi lưu (vd quick-entry đóng dialog). */
+  onSuccess?: () => void;
 }) {
   const router = useRouter();
   const [state, formAction] = useActionState(createTransaction, null);
@@ -41,9 +44,10 @@ export function TransactionForm({
   useEffect(() => {
     if (state?.success) {
       toast.success("Đã lưu giao dịch");
-      router.push(`/transactions/${line}`);
+      if (onSuccess) onSuccess();
+      else router.push(`/transactions/${line}`);
     }
-  }, [state, router, line]);
+  }, [state, router, line, onSuccess]);
 
   const { fieldErrors, formError } = getFormError(state);
   const paidAmount = payLater ? paid : amount;

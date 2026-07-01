@@ -16,7 +16,7 @@ function linkClass(active: boolean) {
   );
 }
 
-export function DashboardNav() {
+export function DashboardNav({ isOwner }: { isOwner: boolean }) {
   const pathname = usePathname();
 
   return (
@@ -65,6 +65,11 @@ export function DashboardNav() {
       >
         Kho
       </Link>
+      {isOwner && (
+        <Link href="/reports" className={linkClass(pathname.startsWith("/reports"))}>
+          Báo cáo
+        </Link>
+      )}
     </nav>
   );
 }

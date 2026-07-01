@@ -128,6 +128,7 @@ export const createOrRestockSparePart = withActionContext(
         return row.id;
       });
 
+      revalidatePath("/");
       revalidatePath("/spare-parts");
       revalidatePath("/transactions/xe-muc");
       return { success: true, data: { id } };
@@ -166,6 +167,7 @@ export const restockSparePart = withActionContext(
         logWarn("restockSparePart", result.error, { code: result.code, input: { id: d.id } });
         return { success: false, code: result.code, error: result.error };
       }
+      revalidatePath("/");
       revalidatePath("/spare-parts");
       revalidatePath(`/spare-parts/${d.id}`);
       revalidatePath("/transactions/xe-muc");
@@ -193,6 +195,7 @@ export const updateSparePart = withActionContext(
         .update(spareParts)
         .set({ name: d.name, unit: d.unit, minQuantity: String(d.minQuantity) })
         .where(eq(spareParts.id, d.id));
+      revalidatePath("/");
       revalidatePath("/spare-parts");
       revalidatePath(`/spare-parts/${d.id}`);
       return { success: true, data: undefined };
@@ -220,6 +223,7 @@ export const adjustStock = withActionContext(
         .update(spareParts)
         .set({ quantity: String(d.quantity) })
         .where(eq(spareParts.id, d.id));
+      revalidatePath("/");
       revalidatePath("/spare-parts");
       revalidatePath(`/spare-parts/${d.id}`);
       return { success: true, data: undefined };
@@ -261,6 +265,7 @@ export const deleteSparePart = withActionContext(
         logWarn("deleteSparePart", result.error, { code: result.code, input: { id: parsed.data.id } });
         return { success: false, code: result.code, error: result.error };
       }
+      revalidatePath("/");
       revalidatePath("/spare-parts");
       return { success: true, data: undefined };
     } catch (err) {

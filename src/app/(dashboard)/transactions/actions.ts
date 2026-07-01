@@ -114,6 +114,7 @@ export const createTransaction = withActionContext(
         return row.id;
       });
 
+      revalidatePath("/");
       revalidatePath(`/transactions/${data.line}`);
       revalidatePath("/debts");
       return { success: true, data: { id } };
@@ -243,6 +244,7 @@ export const updateTransaction = withActionContext(
         });
         return { success: false, code: result.code, error: result.error };
       }
+      revalidatePath("/");
       revalidatePath("/transactions", "layout");
       revalidatePath("/debts");
       return { success: true, data: undefined };
@@ -324,6 +326,7 @@ export const deleteTransaction = withActionContext(
         });
         return { success: false, code: result.code, error: result.error };
       }
+      revalidatePath("/");
       revalidatePath("/transactions", "layout");
       revalidatePath("/debts");
       return { success: true, data: undefined };

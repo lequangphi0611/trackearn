@@ -141,6 +141,7 @@ export const createRepairJob = withActionContext(
         return job.id;
       });
 
+      revalidatePath("/");
       revalidatePath("/repair-jobs");
       revalidatePath("/spare-parts");
       revalidatePath("/transactions/xe-muc");
@@ -300,6 +301,7 @@ export const updateRepairJob = withActionContext(
         logWarn("updateRepairJob", result.error, { code: result.code, input: { id: d.id } });
         return { success: false, code: result.code, error: result.error };
       }
+      revalidatePath("/");
       revalidatePath("/repair-jobs");
       revalidatePath(`/repair-jobs/${d.id}`);
       revalidatePath("/spare-parts");
@@ -367,6 +369,7 @@ export const deleteRepairJob = withActionContext(
         logWarn("deleteRepairJob", result.error, { code: result.code, input: { id: parsed.data.id } });
         return { success: false, code: result.code, error: result.error };
       }
+      revalidatePath("/");
       revalidatePath("/repair-jobs");
       revalidatePath("/spare-parts");
       revalidatePath("/transactions/xe-muc");
