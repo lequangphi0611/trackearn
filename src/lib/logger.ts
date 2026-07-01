@@ -35,6 +35,25 @@ export const logger = pino({
       }),
 });
 
+// Sink lỗi (ERROR) — đăng ký từ instrumentation để ghi vào DB cho trang
+// /admin. KHÔNG import `db` ở đây (tránh vòng lặp logger ← db/logger ← logger);
+// instrumentation gọi registerErrorSink(persistError) lúc khởi động.
+export type ErrorSinkEntry = {
+  action: string;
+  message: string;
+  stack?: string;
+  requestId?: string;
+  userId?: string;
+  extra?: Record<string, unknown>;
+};
+type ErrorSink = (entry: ErrorSinkEntry) => void;
+let errorSink: ErrorSink | null = null;
+
+/** Đăng ký nơi nhận lỗi ERROR (vd ghi DB). Gọi 1 lần ở instrumentation. */
+export function registerErrorSink(sink: ErrorSink): void {
+  errorSink = sink;
+}
+
 // Trộn context request hiện tại (requestId/action/userId) vào log nếu có.
 function withContext(extra?: Record<string, unknown>): Record<string, unknown> {
   const ctx = getRequestContext();
@@ -61,6 +80,19 @@ export function logError(
     { ...withContext(extra), action, err },
     `[${action}] ${err instanceof Error ? err.message : "error"}`,
   );
+
+  // Đẩy sang sink (DB) nếu đã đăng ký — sink tự nuốt lỗi của chính nó.
+  if (errorSink) {
+    const ctx = getRequestContext();
+    errorSink({
+      action,
+      message: err instanceof Error ? err.message : String(err),
+      stack: err instanceof Error ? err.stack : undefined,
+      requestId: ctx?.requestId,
+      userId: ctx?.userId,
+      extra,
+    });
+  }
 }
 
 /**
@@ -83,4 +115,18 @@ export function logWarn(
     },
     `[${action}] ${message}`,
   );
+}
+
+/**
+ * Log sự kiện bình thường đáng ghi nhận ở mức INFO (mốc nghiệp vụ, hành động
+ * quan trọng) — KHÔNG phải lỗi. Ra stdout (pino), KHÔNG vào DB. Prod LOG_LEVEL
+ * mặc định "info" nên sẽ hiện → dùng tiết kiệm để log khỏi nhiễu.
+ * `extra` phải sanitize (bỏ credential/tiền/PII) như logError/logWarn.
+ */
+export function logInfo(
+  action: string,
+  message: string,
+  extra?: Record<string, unknown>,
+): void {
+  logger.info({ ...withContext(extra), action }, `[${action}] ${message}`);
 }
