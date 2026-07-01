@@ -15,38 +15,31 @@ export default async function NewTransactionPage({
   const config = getTransactionLine(line);
   if (!config) notFound();
 
-  const categories = await getExpenseCategories();
+  const [categories, devices] = await Promise.all([
+    getExpenseCategories(),
+    config.hasDevicePicker ? getInStockDevicesForPicker() : Promise.resolve([]),
+  ]);
 
   return (
     <div className="mx-auto flex max-w-md flex-col gap-4">
       <h1 className="text-lg font-semibold">Nhập giao dịch — {config.label}</h1>
 
-      {line === "thiet-bi" ? (
-        <DeviceTransactionFormContainer categories={categories} />
+      {config.hasDevicePicker ? (
+        <DeviceTransactionForm
+          line={config.slug}
+          devices={devices}
+          categories={categories}
+          defaultDateTime={vnDateTimeLocal()}
+          defaultDate={vnTodayISODate()}
+        />
       ) : (
         <TransactionForm
           line={line}
-          expenseOnly={config.expenseOnly}
+          lockType={config.expenseOnly ? "expense" : undefined}
           defaultDateTime={vnDateTimeLocal()}
           categories={categories}
         />
       )}
     </div>
-  );
-}
-
-async function DeviceTransactionFormContainer({
-  categories,
-}: {
-  categories: { id: string; name: string }[];
-}) {
-  const devices = await getInStockDevicesForPicker();
-  return (
-    <DeviceTransactionForm
-      devices={devices}
-      categories={categories}
-      defaultDateTime={vnDateTimeLocal()}
-      defaultDate={vnTodayISODate()}
-    />
   );
 }

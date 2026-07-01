@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Field } from "@/components/forms/Field";
@@ -27,15 +27,22 @@ export function SellDeviceForm({
   const [payLater, setPayLater] = useState(false);
   const [paid, setPaid] = useState("");
 
+  // Ref giữ onSuccess mới nhất — effect bán máy chỉ cần phụ thuộc `state`,
+  // tránh gọi closure cũ nếu caller truyền onSuccess khác nhau giữa các lần
+  // render. Cập nhật ref trong effect riêng (sau render) — không được gán
+  // ref lúc đang render.
+  const onSuccessRef = useRef(onSuccess);
+  useEffect(() => {
+    onSuccessRef.current = onSuccess;
+  });
+
   useEffect(() => {
     if (state?.success) {
       toast.success("Đã bán máy");
-      onSuccess();
+      onSuccessRef.current();
     } else if (state && !state.success && !state.fieldErrors) {
       toast.error(state.error);
     }
-    // onSuccess cố ý không nằm trong deps — chỉ chạy lại khi state đổi.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
 
   const { fieldErrors, formError } = getFormError(state);

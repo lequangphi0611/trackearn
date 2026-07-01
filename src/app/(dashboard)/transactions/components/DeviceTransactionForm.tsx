@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
+import { SegmentedToggle } from "@/components/forms/SegmentedToggle";
 import { SubmitButton } from "@/components/forms/SubmitButton";
 import {
   Combobox,
@@ -21,7 +21,7 @@ import { SellDeviceForm } from "../../devices/components/SellDeviceForm";
 import { TransactionForm } from "./TransactionForm";
 
 type Category = { id: string; name: string };
-type DeviceOption = { id: string; name: string; conditionNote: string | null; buyPrice: number };
+type DeviceOption = { id: string; name: string; conditionNote: string | null };
 type ComboItem = { value: string; label: string };
 
 const MODES = [
@@ -38,11 +38,13 @@ type Mode = (typeof MODES)[number]["key"];
  * bắt rời màn sang /devices như trước.
  */
 export function DeviceTransactionForm({
+  line,
   devices,
   categories,
   defaultDateTime,
   defaultDate,
 }: {
+  line: string;
   devices: DeviceOption[];
   categories: Category[];
   defaultDateTime: string;
@@ -61,19 +63,7 @@ export function DeviceTransactionForm({
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-1.5">
         <Label>Loại giao dịch</Label>
-        <div className="flex flex-wrap gap-2">
-          {MODES.map((m) => (
-            <Button
-              key={m.key}
-              type="button"
-              variant={mode === m.key ? "default" : "outline"}
-              size="sm"
-              onClick={() => setMode(m.key)}
-            >
-              {m.label}
-            </Button>
-          ))}
-        </div>
+        <SegmentedToggle options={MODES} value={mode} onChange={setMode} />
       </div>
 
       {mode === "sell" &&
@@ -112,10 +102,13 @@ export function DeviceTransactionForm({
             </div>
 
             {selected && (
+              // key={selected.value}: đổi máy phải remount, không giữ state
+              // (giá bán, trả sau...) của máy trước sang máy mới chọn.
               <SellDeviceForm
+                key={selected.value}
                 id={selected.value}
                 defaultDate={defaultDate}
-                onSuccess={() => router.push("/transactions/thiet-bi")}
+                onSuccess={() => router.push(`/transactions/${line}`)}
                 footer={
                   <SubmitButton size="lg" fullWidth>
                     Lưu giao dịch
@@ -128,8 +121,7 @@ export function DeviceTransactionForm({
 
       {mode === "income" && (
         <TransactionForm
-          line="thiet-bi"
-          expenseOnly={false}
+          line={line}
           lockType="income"
           defaultDateTime={defaultDateTime}
           categories={categories}
@@ -138,8 +130,8 @@ export function DeviceTransactionForm({
 
       {mode === "expense" && (
         <TransactionForm
-          line="thiet-bi"
-          expenseOnly
+          line={line}
+          lockType="expense"
           defaultDateTime={defaultDateTime}
           categories={categories}
         />

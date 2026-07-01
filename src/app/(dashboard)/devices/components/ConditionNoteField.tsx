@@ -15,10 +15,16 @@ export function ConditionNoteField({
   error?: string;
 }) {
   const [value, setValue] = useState(defaultValue);
-  const selected = value
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
+  // Dedupe: người dùng có thể tự gõ trùng cụm giống 1 chip, filter/includes
+  // bên dưới cần selected là tập hợp duy nhất để bấm chip luôn nhất quán.
+  const selected = Array.from(
+    new Set(
+      value
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
+    ),
+  );
 
   function toggle(preset: string) {
     setValue(

@@ -44,7 +44,6 @@ export async function getInStockDevicesForPicker() {
       id: devices.id,
       name: devices.name,
       conditionNote: devices.conditionNote,
-      buyPrice: devices.buyPrice,
     })
     .from(devices)
     .where(eq(devices.status, "in_stock"))
