@@ -94,12 +94,17 @@ function ComboboxPopup({
   );
 }
 
-function ComboboxEmpty({ className, ...props }: React.ComponentProps<typeof BaseCombobox.Empty>) {
+// Gốc <Combobox.Empty> phải luôn ở trong DOM (để trình đọc màn hình nghe
+// thông báo aria-live) nên KHÔNG đặt padding/style trực tiếp lên nó — khi
+// danh sách không rỗng, nó vẫn chiếm chỗ dù không có nội dung. Bọc nội dung
+// hiển thị trong 1 phần tử con thay vì style thẳng lên root.
+function ComboboxEmpty({ className, children, ...props }: React.ComponentProps<typeof BaseCombobox.Empty>) {
   return (
-    <BaseCombobox.Empty
-      className={cn("px-3 py-6 text-center text-sm text-muted-foreground", className)}
-      {...props}
-    />
+    <BaseCombobox.Empty {...props}>
+      <p className={cn("px-3 py-6 text-center text-sm text-muted-foreground", className)}>
+        {children}
+      </p>
+    </BaseCombobox.Empty>
   );
 }
 

@@ -17,7 +17,6 @@ import {
   ComboboxPopup,
   ComboboxTrigger,
 } from "@/components/ui/combobox";
-import { formatCurrency } from "@/lib/format";
 import { SellDeviceForm } from "../../devices/components/SellDeviceForm";
 import { TransactionForm } from "./TransactionForm";
 
@@ -55,7 +54,7 @@ export function ThietBiTransactionForm({
 
   const items: ComboItem[] = devices.map((d) => ({
     value: d.id,
-    label: [d.name, d.conditionNote, formatCurrency(d.buyPrice)].filter(Boolean).join(" — "),
+    label: [d.name, d.conditionNote].filter(Boolean).join(" — "),
   }));
 
   return (
