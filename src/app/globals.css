@@ -116,9 +116,11 @@
   --expense: oklch(0.7 0.17 30);
   --brand: oklch(0.8 0.14 75);
   --brand-foreground: oklch(0.2 0.02 260);
-  --chart-1: oklch(0.72 0.15 155);
-  --chart-2: oklch(0.7 0.17 30);
-  --chart-3: oklch(0.8 0.14 75);
+  /* Step dark riêng cho chart (band L 0.48–0.67): mark cần trầm hơn text token
+     income/expense/brand dark — đã validate CVD + contrast trên nền card dark. */
+  --chart-1: oklch(0.64 0.13 155);
+  --chart-2: oklch(0.64 0.17 30);
+  --chart-3: oklch(0.66 0.13 75);
   --chart-4: oklch(0.7 0.015 260);
   --chart-5: oklch(0.95 0.006 95);
   --sidebar: oklch(0.2 0.014 260);
