@@ -20,9 +20,12 @@ export type UserWithStats = {
 
 // Tính cả updated_by: user từng sửa giao dịch cũng bị FK giữ lại khi xóa,
 // và về nghiệp vụ vẫn là "đã tham gia giao dịch" (giữ dấu vết audit).
+// Lưu ý: phải qualify "user"."id" bằng tay — trong subquery, cột của bảng
+// ngoài bị Drizzle render không qualify → Postgres resolve nhầm sang
+// transactions.id (uuid) và nổ "operator does not exist: text = uuid".
 const hasTransactionsSql = sql<boolean>`exists (
   select 1 from ${transactions}
-  where ${transactions.userId} = ${user.id} or ${transactions.updatedBy} = ${user.id}
+  where ${transactions.userId} = "user"."id" or ${transactions.updatedBy} = "user"."id"
 )`;
 
 /** Toàn bộ user + cờ "có giao dịch" cho màn /settings/users; owner đứng đầu. */
