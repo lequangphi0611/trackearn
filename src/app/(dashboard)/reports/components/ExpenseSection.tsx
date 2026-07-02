@@ -1,15 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Money } from "@/components/Money";
+import { shortCategoryName } from "@/lib/format";
 import type { ExpenseByCategory } from "@/queries/reports";
 import { ExpenseCategoryBar } from "./charts/ExpenseCategoryBar";
 
 const TOP_CATEGORIES = 10;
-
-/** Nhãn trục cho chart: bỏ phần chú giải trong ngoặc, cắt tên quá dài. */
-function chartLabel(name: string): string {
-  const short = name.replace(/\s*\(.*\)\s*$/, "").trim();
-  return short.length > 18 ? `${short.slice(0, 17)}…` : short;
-}
 
 /** Chi phí theo danh mục (giảm dần, top 10 + gộp) + chỉ số "Chi phí chung" riêng. */
 export function ExpenseSection({ data }: { data: ExpenseByCategory }) {
@@ -18,7 +13,7 @@ export function ExpenseSection({ data }: { data: ExpenseByCategory }) {
     .slice(TOP_CATEGORIES)
     .reduce((s, c) => s + c.total, 0);
   const chartData = [
-    ...top.map((c) => ({ name: chartLabel(c.name), total: c.total })),
+    ...top.map((c) => ({ name: shortCategoryName(c.name), total: c.total })),
     ...(restTotal > 0 ? [{ name: "Còn lại (gộp)", total: restTotal }] : []),
   ];
 

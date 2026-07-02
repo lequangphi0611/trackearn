@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import { Suspense } from "react";
 import Link from "next/link";
 import { Plus } from "lucide-react";
@@ -32,7 +33,7 @@ export default async function SparePartsPage({
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-2">
         <h1 className="text-lg font-semibold">Kho phụ tùng</h1>
-        <Link href="/spare-parts/new" className={buttonVariants({ size: "sm" })}>
+        <Link href="/spare-parts/new" className={cn(buttonVariants({ size: "sm" }), "max-sm:h-10")}>
           <Plus />
           Nhập phụ tùng
         </Link>

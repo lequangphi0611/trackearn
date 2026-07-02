@@ -43,7 +43,7 @@ function MenuItem({
   return (
     <BaseMenu.Item
       className={cn(
-        "flex cursor-pointer items-center rounded-md px-3 py-1.5 text-sm outline-none select-none",
+        "flex cursor-pointer items-center rounded-md px-3 py-1.5 text-sm outline-none select-none max-sm:min-h-10",
         "data-[highlighted]:bg-muted data-[highlighted]:text-foreground",
         className,
       )}

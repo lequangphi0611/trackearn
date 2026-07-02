@@ -57,6 +57,15 @@ export function formatTime(value: Date | string): string {
 }
 
 /**
+ * Tên danh mục chi phí cho UI chật (badge, meta row, nhãn trục chart):
+ * bỏ phần chú giải trong ngoặc, cắt tên quá dài. Tên đầy đủ giữ cho select.
+ */
+export function shortCategoryName(name: string): string {
+  const short = name.replace(/\s*\(.*\)\s*$/, "").trim();
+  return short.length > 18 ? `${short.slice(0, 17)}…` : short;
+}
+
+/**
  * % thay đổi so kỳ trước → "+12%" / "−8%"; `null` khi kỳ trước = 0 (UI hiện "—").
  * Mẫu số |prev| để kỳ trước âm (lãi âm) không lật dấu chiều thay đổi.
  */

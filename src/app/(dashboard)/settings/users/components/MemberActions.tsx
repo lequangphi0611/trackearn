@@ -37,7 +37,7 @@ export function MemberActions({
       <Menu>
         <MenuTrigger
           aria-label={`Thao tác với ${name}`}
-          className="flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors outline-none hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+          className="flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors outline-none hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring max-sm:size-10"
         >
           <EllipsisVertical className="size-4" />
         </MenuTrigger>

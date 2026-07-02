@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/card";
 import { ProfileForm } from "./ProfileForm";
 import { PasswordForm } from "./PasswordForm";
+import { ThemeToggle } from "./ThemeToggle";
 
 const ROLE_LABELS: Record<string, string> = {
   owner: "Chủ hộ",
@@ -44,6 +45,15 @@ export default async function SettingsPage() {
             <span>{roleLabel}</span>
           </div>
           <ProfileForm defaultName={name} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Giao diện</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ThemeToggle />
         </CardContent>
       </Card>
 

@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -74,7 +75,7 @@ export default async function TransactionListPage({
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-2">
         <h1 className="text-lg font-semibold">{config.label}</h1>
-        <Link href={`/transactions/${line}/new`} className={buttonVariants({ size: "sm" })}>
+        <Link href={`/transactions/${line}/new`} className={cn(buttonVariants({ size: "sm" }), "max-sm:h-10")}>
           <Plus />
           Nhập
         </Link>

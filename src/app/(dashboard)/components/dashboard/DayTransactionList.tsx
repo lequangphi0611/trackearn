@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { formatTime } from "@/lib/format";
+import { formatTime, shortCategoryName } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Money } from "@/components/Money";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -69,7 +69,12 @@ export function DayTransactionList({
                       )}
                     </div>
                     <p className="truncate text-xs text-muted-foreground">
-                      {[t.categoryName, t.counterpartyName, t.note, t.userName]
+                      {[
+                        t.categoryName && shortCategoryName(t.categoryName),
+                        t.counterpartyName,
+                        t.note,
+                        t.userName,
+                      ]
                         .filter(Boolean)
                         .join(" · ")}
                     </p>

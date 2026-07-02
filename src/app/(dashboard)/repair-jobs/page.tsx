@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import { Suspense } from "react";
 import Link from "next/link";
 import { Plus } from "lucide-react";
@@ -46,7 +47,7 @@ export default async function RepairJobsPage({
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-2">
         <h1 className="text-lg font-semibold">Job sửa xe múc</h1>
-        <Link href="/repair-jobs/new" className={buttonVariants({ size: "sm" })}>
+        <Link href="/repair-jobs/new" className={cn(buttonVariants({ size: "sm" }), "max-sm:h-10")}>
           <Plus />
           Tạo job
         </Link>

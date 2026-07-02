@@ -38,7 +38,7 @@ export function CreateMemberDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
         render={
-          <Button size="sm">
+          <Button size="sm" className="max-sm:h-10">
             <Plus />
             Tạo thành viên
           </Button>

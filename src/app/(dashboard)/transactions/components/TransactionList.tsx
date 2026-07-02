@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { formatCurrency, formatDate, formatTime } from "@/lib/format";
+import { formatCurrency, formatDate, formatTime, shortCategoryName } from "@/lib/format";
 import { vnDateOnly } from "@/lib/date";
 import { Money } from "@/components/Money";
 import { Badge } from "@/components/ui/badge";
@@ -78,13 +78,19 @@ export function TransactionList({
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <span className="truncate text-sm font-medium">
-                          {t.counterpartyName || t.note || t.categoryName || "Giao dịch"}
+                          {t.counterpartyName ||
+                            t.note ||
+                            (t.categoryName && shortCategoryName(t.categoryName)) ||
+                            "Giao dịch"}
                         </span>
                         {t.sourceKind !== "manual" && <Badge variant="muted">Tự sinh</Badge>}
                       </div>
                       <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
                         <span className="tabular">{formatTime(t.transactedAt)}</span>
-                        {t.categoryName && <span>· {t.categoryName}</span>}
+                        {/* Danh mục chỉ hiện ở meta khi title chưa phải là nó (tránh lặp 2 dòng). */}
+                        {t.categoryName && (t.counterpartyName || t.note) && (
+                          <span>· {shortCategoryName(t.categoryName)}</span>
+                        )}
                         {t.userName && <span>· {t.userName}</span>}
                       </div>
                     </div>

@@ -55,6 +55,7 @@
 
 /* "Sổ thu chi" — nền ngà ấm, mực gần đen, thu xanh / chi đỏ, nhấn hổ phách (₫). */
 :root {
+  color-scheme: light; /* form control/scrollbar native theo theme */
   --background: oklch(0.985 0.008 95);
   --foreground: oklch(0.22 0.02 255);
   --card: oklch(0.997 0.004 95);
@@ -94,6 +95,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   --background: oklch(0.2 0.014 260);
   --foreground: oklch(0.95 0.006 95);
   --card: oklch(0.235 0.014 260);
