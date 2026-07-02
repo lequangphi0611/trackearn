@@ -2,9 +2,7 @@
 
 > **Loại:** spec nền tảng, dependency dùng chung cho [screens/register.md](./screens/register.md) & [screens/login.md](./screens/login.md).
 > **Tham chiếu:** [architecture.md](../architecture.md) (data model), [coding-rules](../coding-rules.md).
-> **Hiện trạng code:**
-> - `src/lib/auth.ts`: `betterAuth({ database: drizzleAdapter(db,{provider:"pg"}), emailAndPassword:{enabled:true} })` — **thiếu** `nextCookies`, `additionalFields.role`, `session`.
-> - `src/db/schema.ts`: rỗng. `drizzle.config.ts` trỏ `./src/db/schema.ts`, out `./drizzle`, postgresql.
+> **Hiện trạng code:** đã implement đầy đủ — `src/lib/auth.ts` khớp mục 2 dưới; `src/db/schema.ts` có đủ bảng auth (kèm cột admin plugin) + bảng nghiệp vụ; scripts DB đã có trong `package.json`.
 > - `.env`: `DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`.
 
 ---
@@ -25,16 +23,23 @@ Ngoài phạm vi: các bảng nghiệp vụ (transactions, devices, debts…) �
 ```ts
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { admin } from "better-auth/plugins";
+import { adminAc, userAc } from "better-auth/plugins/admin/access";
 import { nextCookies } from "better-auth/next-js";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, { provider: "pg", schema }),
-  emailAndPassword: { enabled: true, minPasswordLength: 8 },
+  // autoSignIn:false — signUpEmail (chỉ dùng cho đăng ký owner đầu tiên) KHÔNG
+  // tự tạo session: registerOwner promote role=owner trong DB rồi mới signIn
+  // để session snapshot đúng role (tránh cookieCache giữ role "member" cũ).
+  emailAndPassword: { enabled: true, minPasswordLength: 8, autoSignIn: false },
   user: {
     additionalFields: {
-      role: { type: "string", required: false, defaultValue: "member", input: true },
+      // admin plugin quản lý `role`; input:false → KHÔNG thể set role khi
+      // signup (chống tự nâng quyền).
+      role: { type: "string", required: false, defaultValue: "member", input: false },
     },
   },
   session: {
@@ -43,17 +48,22 @@ export const auth = betterAuth({
     cookieCache: { enabled: true, maxAge: 60 * 5 }, // cache 5 phút
   },
   plugins: [
-    admin({ adminRoles: ["owner"] }), // quản lý người dùng (xem screens/settings.md)
-    nextCookies(),                    // PHẢI là plugin cuối
+    // better-auth 1.6.x yêu cầu adminRoles khai báo trong `roles` (access control).
+    admin({
+      adminRoles: ["owner"],
+      defaultRole: "member", // member do owner tạo mặc định "member" (không phải "user")
+      roles: { owner: adminAc, member: userAc },
+    }),
+    nextCookies(), // PHẢI là plugin cuối
   ],
 });
 ```
 
 **Điểm bắt buộc:**
 - `nextCookies()` **phải đứng cuối** mảng `plugins`. Thiếu nó → Server Action `signUpEmail`/`signInEmail` không set được cookie → đăng nhập "thành công" nhưng không có session.
-- **Admin plugin** (`better-auth/plugins`): cho owner quản lý member (`createUser`, `setUserPassword`, `banUser`/`unbanUser`, `removeUser`); bổ sung field `banned`/`banReason`/`banExpires` vào `user`. `adminRoles: ["owner"]` → owner là admin.
+- **Admin plugin** (`better-auth/plugins`): cho owner quản lý member (`createUser`, `setUserPassword`, `banUser`/`unbanUser`, `removeUser` — dùng ở `/settings/users`, xem screens/settings.md §4); bổ sung field `banned`/`banReason`/`banExpires` vào `user`; `banUser` tự thu hồi session của người bị khóa. `adminRoles: ["owner"]` → owner là admin.
 - `minPasswordLength: 8` khớp validation màn register.
-- `role` dùng `input: true` để register truyền `role:"owner"`; mặc định `"member"`.
+- `role` dùng **`input: false`** (chống tự nâng quyền khi signup). Owner đầu tiên được promote bằng `db.update(user).set({ role: "owner" })` trong `registerOwner` (lúc đó chưa có admin nào để gọi `setRole`), sau đó mới `signIn`.
 
 ---
 
