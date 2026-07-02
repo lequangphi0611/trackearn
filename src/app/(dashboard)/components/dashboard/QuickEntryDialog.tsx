@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { TRANSACTION_LINES, getTransactionLine } from "@/lib/transaction-lines";
+import { useQuickEntryStore } from "@/lib/quick-entry-store";
 import { TransactionForm } from "../../transactions/components/TransactionForm";
 import { DeviceTransactionForm } from "../../transactions/components/DeviceTransactionForm";
 
@@ -38,17 +39,21 @@ export function QuickEntryDialog({
   defaultDate: string;
 }) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  // Store thay useState để FAB ở BottomNav mở được cùng dialog này.
+  const open = useQuickEntryStore((s) => s.isOpen);
+  const openStore = useQuickEntryStore((s) => s.open);
+  const close = useQuickEntryStore((s) => s.close);
   const [line, setLine] = useState("");
   const config = line ? getTransactionLine(line) : undefined;
 
   function handleOpenChange(next: boolean) {
-    setOpen(next);
+    if (next) openStore();
+    else close();
     if (!next) setLine(""); // lần mở sau bắt chọn lại mảng từ đầu
   }
 
   function handleSuccess() {
-    setOpen(false);
+    close();
     setLine("");
     router.refresh();
   }
@@ -63,7 +68,7 @@ export function QuickEntryDialog({
           </Button>
         }
       />
-      <DialogContent className="max-h-[85dvh] overflow-y-auto">
+      <DialogContent variant="sheet" className="max-h-[85dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Nhập giao dịch nhanh</DialogTitle>
           <DialogDescription>
@@ -101,6 +106,7 @@ export function QuickEntryDialog({
                 defaultDateTime={defaultDateTime}
                 defaultDate={defaultDate}
                 onSuccess={handleSuccess}
+                stickySubmit
               />
             ) : (
               <TransactionForm
@@ -110,6 +116,7 @@ export function QuickEntryDialog({
                 defaultDateTime={defaultDateTime}
                 categories={categories}
                 onSuccess={handleSuccess}
+                stickySubmit
               />
             ))}
         </div>

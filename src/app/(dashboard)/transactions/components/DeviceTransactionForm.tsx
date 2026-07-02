@@ -44,6 +44,7 @@ export function DeviceTransactionForm({
   defaultDateTime,
   defaultDate,
   onSuccess,
+  stickySubmit,
 }: {
   line: string;
   devices: DeviceOption[];
@@ -52,6 +53,8 @@ export function DeviceTransactionForm({
   defaultDate: string;
   /** Có mặt → thay điều hướng mặc định về list sau khi lưu (vd quick-entry đóng dialog). */
   onSuccess?: () => void;
+  /** Ghim nút Lưu ở đáy vùng cuộn (dialog dài) — luồn xuống các form con. */
+  stickySubmit?: boolean;
 }) {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>(devices.length > 0 ? "sell" : "income");
@@ -113,9 +116,17 @@ export function DeviceTransactionForm({
                 defaultDate={defaultDate}
                 onSuccess={onSuccess ?? (() => router.push(`/transactions/${line}`))}
                 footer={
-                  <SubmitButton size="lg" fullWidth>
-                    Lưu giao dịch
-                  </SubmitButton>
+                  <div
+                    className={
+                      stickySubmit
+                        ? "sticky bottom-0 -mx-6 border-t border-border/60 bg-card px-6 pt-3 pb-1"
+                        : undefined
+                    }
+                  >
+                    <SubmitButton size="lg" fullWidth>
+                      Lưu giao dịch
+                    </SubmitButton>
+                  </div>
                 }
               />
             )}
@@ -129,6 +140,7 @@ export function DeviceTransactionForm({
           defaultDateTime={defaultDateTime}
           categories={categories}
           onSuccess={onSuccess}
+          stickySubmit={stickySubmit}
         />
       )}
 
@@ -139,6 +151,7 @@ export function DeviceTransactionForm({
           defaultDateTime={defaultDateTime}
           categories={categories}
           onSuccess={onSuccess}
+          stickySubmit={stickySubmit}
         />
       )}
     </div>

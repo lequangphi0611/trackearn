@@ -7,6 +7,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { FilterBar } from "@/components/filters/FilterBar";
 import { RepairJobResults } from "./components/RepairJobResults";
 import { RepairJobListSkeleton } from "./components/RepairJobListSkeleton";
 
@@ -51,19 +52,23 @@ export default async function RepairJobsPage({
         </Link>
       </div>
 
-      <form method="get" action="/repair-jobs" className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
-        <Input name="q" defaultValue={sp.q ?? ""} placeholder="Tìm tên khách" className="sm:w-48" />
-        <Select name="status" defaultValue={sp.status ?? ""} className="sm:w-36">
-          <option value="">Mọi trạng thái</option>
-          <option value="paid">Đủ</option>
-          <option value="partial">Một phần</option>
-          <option value="pending">Chưa</option>
-        </Select>
-        <Input type="date" name="from" defaultValue={sp.from ?? ""} className="sm:w-40" />
-        <Input type="date" name="to" defaultValue={sp.to ?? ""} className="sm:w-40" />
-        <Button type="submit" variant="outline" size="sm">
-          Lọc
-        </Button>
+      <form method="get" action="/repair-jobs">
+        <FilterBar
+          activeCount={(status ? 1 : 0) + (sp.from ? 1 : 0) + (sp.to ? 1 : 0)}
+          search={<Input name="q" defaultValue={sp.q ?? ""} placeholder="Tìm tên khách" />}
+        >
+          <Select name="status" defaultValue={sp.status ?? ""} className="sm:w-36">
+            <option value="">Mọi trạng thái</option>
+            <option value="paid">Đủ</option>
+            <option value="partial">Một phần</option>
+            <option value="pending">Chưa</option>
+          </Select>
+          <Input type="date" name="from" defaultValue={sp.from ?? ""} className="sm:w-40" />
+          <Input type="date" name="to" defaultValue={sp.to ?? ""} className="sm:w-40" />
+          <Button type="submit" variant="outline" size="sm" className="max-sm:h-10">
+            Lọc
+          </Button>
+        </FilterBar>
       </form>
 
       <Suspense key={filterKey} fallback={<RepairJobListSkeleton />}>

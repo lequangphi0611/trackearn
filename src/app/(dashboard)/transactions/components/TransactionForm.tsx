@@ -25,6 +25,7 @@ export function TransactionForm({
   defaultDateTime,
   categories,
   onSuccess,
+  stickySubmit,
 }: {
   line: string;
   /** Cố định loại giao dịch, ẩn công tắc Thu/Chi — dùng khi màn cha đã tự quyết loại. */
@@ -33,6 +34,8 @@ export function TransactionForm({
   categories: Category[];
   /** Có mặt → thay điều hướng mặc định về list sau khi lưu (vd quick-entry đóng dialog). */
   onSuccess?: () => void;
+  /** Ghim nút Lưu ở đáy vùng cuộn (dialog dài, vd mở "Trả sau") — luôn thấy submit. */
+  stickySubmit?: boolean;
 }) {
   const router = useRouter();
   const [state, formAction] = useActionState(createTransaction, null);
@@ -138,9 +141,17 @@ export function TransactionForm({
         error={fieldErrors?.transactedAt?.[0]}
       />
 
-      <SubmitButton size="lg" fullWidth>
-        Lưu giao dịch
-      </SubmitButton>
+      <div
+        className={
+          stickySubmit
+            ? "sticky bottom-0 -mx-6 border-t border-border/60 bg-card px-6 pt-3 pb-1"
+            : undefined
+        }
+      >
+        <SubmitButton size="lg" fullWidth>
+          Lưu giao dịch
+        </SubmitButton>
+      </div>
     </form>
   );
 }
