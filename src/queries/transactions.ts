@@ -3,6 +3,7 @@ import { alias } from "drizzle-orm/pg-core";
 import { db } from "@/db";
 import { debts, expenseCategories, transactions, user } from "@/db/schema";
 import type { PaymentStatus, TransactionType } from "@/lib/payment";
+import { vnDayRange } from "@/lib/date";
 
 export const TRANSACTIONS_PAGE_SIZE = 20;
 const MAX_PAGE = 50; // chặn trần load-more (tối đa 50 trang) tránh tải vô hạn
@@ -63,6 +64,48 @@ export async function getTransactions(f: TransactionFilters) {
 
   const hasMore = rows.length > take;
   return { items: hasMore ? rows.slice(0, take) : rows, hasMore };
+}
+
+/** Giao dịch trong 1 ngày VN (mọi mảng), mới nhất trước — cho dashboard. */
+export async function getTransactionsByDate(dateISO: string) {
+  return getByDate(dateISO);
+}
+
+/** Giao dịch CỦA MỘT NGƯỜI trong 1 ngày VN — bản dashboard rút gọn cho member. */
+export async function getMyTransactionsByDate(dateISO: string, userId: string) {
+  return getByDate(dateISO, userId);
+}
+
+async function getByDate(dateISO: string, userId?: string) {
+  const { from, to } = vnDayRange(dateISO);
+  const conds: SQL[] = [
+    gte(transactions.transactedAt, from),
+    lt(transactions.transactedAt, to),
+  ];
+  if (userId) conds.push(eq(transactions.userId, userId));
+
+  // 1 ngày của hộ kinh doanh nhỏ → ít dòng, không cần phân trang.
+  return db
+    .select({
+      id: transactions.id,
+      type: transactions.type,
+      amount: transactions.amount,
+      paidAmount: transactions.paidAmount,
+      paymentStatus: transactions.paymentStatus,
+      businessLine: transactions.businessLine,
+      note: transactions.note,
+      transactedAt: transactions.transactedAt,
+      sourceKind: transactions.sourceKind,
+      categoryName: expenseCategories.name,
+      userName: user.name,
+      counterpartyName: debts.counterpartyName,
+    })
+    .from(transactions)
+    .leftJoin(debts, eq(debts.transactionId, transactions.id))
+    .leftJoin(expenseCategories, eq(expenseCategories.id, transactions.categoryId))
+    .leftJoin(user, eq(user.id, transactions.userId))
+    .where(and(...conds))
+    .orderBy(desc(transactions.transactedAt));
 }
 
 /** Chi tiết 1 giao dịch + công nợ (nếu có) + tên danh mục/người tạo/người sửa. */
