@@ -6,6 +6,7 @@ import type { SparePartFilters } from "@/queries/spare-parts";
 import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { FilterBar } from "@/components/filters/FilterBar";
 import { SparePartResults } from "./components/SparePartResults";
 import { SparePartListSkeleton } from "./components/SparePartListSkeleton";
 
@@ -39,15 +40,27 @@ export default async function SparePartsPage({
         </Link>
       </div>
 
-      <form method="get" action="/spare-parts" className="flex flex-wrap items-center gap-2">
-        <Input name="q" defaultValue={sp.q ?? ""} placeholder="Tìm tên phụ tùng" className="sm:w-56" />
-        <label className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <input type="checkbox" name="low" value="1" defaultChecked={lowOnly} className="size-4 accent-primary" />
-          Chỉ tồn thấp
-        </label>
-        <Button type="submit" variant="outline" size="sm">
-          Lọc
-        </Button>
+      <form method="get" action="/spare-parts">
+        <FilterBar
+          activeCount={lowOnly ? 1 : 0}
+          search={
+            <Input name="q" defaultValue={sp.q ?? ""} placeholder="Tìm tên phụ tùng" />
+          }
+        >
+          <label className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <input
+              type="checkbox"
+              name="low"
+              value="1"
+              defaultChecked={lowOnly}
+              className="size-4 accent-primary"
+            />
+            Chỉ tồn thấp
+          </label>
+          <Button type="submit" variant="outline" size="sm" className="max-sm:h-10">
+            Lọc
+          </Button>
+        </FilterBar>
       </form>
 
       <Suspense key={filterKey} fallback={<SparePartListSkeleton />}>

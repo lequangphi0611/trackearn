@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import {
@@ -45,6 +45,14 @@ export function QuickEntryDialog({
   const close = useQuickEntryStore((s) => s.close);
   const [line, setLine] = useState("");
   const config = line ? getTransactionLine(line) : undefined;
+
+  // `isOpen` sống trong store toàn cục, ngoài vòng đời component — nếu người
+  // dùng điều hướng đi (vd bấm link "Nhập máy" trong form) mà không đóng
+  // dialog trước, store vẫn giữ true và lần quay lại "/" dialog tự bật lại.
+  // Reset khi unmount để mỗi lần vào "/" luôn bắt đầu từ trạng thái đóng.
+  useEffect(() => {
+    return () => close();
+  }, [close]);
 
   function handleOpenChange(next: boolean) {
     if (next) openStore();

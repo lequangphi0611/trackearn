@@ -60,10 +60,13 @@ export async function getOpenDebts(): Promise<{
     .where(isNull(debts.settledAt))
     .orderBy(sql`${debts.dueDate} asc nulls last`, desc(transactions.transactedAt));
 
-  return {
-    receivable: rows.filter((r) => r.direction === "receivable"),
-    payable: rows.filter((r) => r.direction === "payable"),
-  };
+  // 1 lượt duyệt thay vì filter() 2 lần trên cùng mảng đã fetch.
+  const receivable: OpenDebt[] = [];
+  const payable: OpenDebt[] = [];
+  for (const r of rows) {
+    (r.direction === "receivable" ? receivable : payable).push(r);
+  }
+  return { receivable, payable };
 }
 
 /** Danh sách công nợ theo tab/chiều + lọc; sắp quá hạn/gần hạn lên trước. */

@@ -34,6 +34,16 @@ export type DailySummary = {
 // Thứ tự hiển thị cố định: 3 mảng rồi Chi phí chung.
 const LINE_ORDER: (BusinessLine | null)[] = [...BUSINESS_LINES, null];
 
+// coalesce(sum(...) filter (where type = ...), 0) lặp lại ở nhiều hàm dưới —
+// gom 2 dạng hay dùng nhất (theo amount / theo paid_amount) để khỏi gõ lại
+// cùng 1 template SQL nhiều nơi.
+function sumByType(type: "income" | "expense") {
+  return sql<string>`coalesce(sum(${transactions.amount}) filter (where ${transactions.type} = ${type}), 0)`;
+}
+function sumPaidByType(type: "income" | "expense") {
+  return sql<string>`coalesce(sum(${transactions.paidAmount}) filter (where ${transactions.type} = ${type}), 0)`;
+}
+
 /** Thu/chi/lãi nhanh theo mảng (+ Chi phí chung) + thực thu trong 1 ngày VN. */
 export async function getDailySummary(dateISO: string): Promise<DailySummary> {
   const { from, to } = vnDayRange(dateISO);
@@ -41,9 +51,9 @@ export async function getDailySummary(dateISO: string): Promise<DailySummary> {
   const rows = await db
     .select({
       businessLine: transactions.businessLine,
-      income: sql<string>`coalesce(sum(${transactions.amount}) filter (where ${transactions.type} = 'income'), 0)`,
-      expense: sql<string>`coalesce(sum(${transactions.amount}) filter (where ${transactions.type} = 'expense'), 0)`,
-      paidIncome: sql<string>`coalesce(sum(${transactions.paidAmount}) filter (where ${transactions.type} = 'income'), 0)`,
+      income: sumByType("income"),
+      expense: sumByType("expense"),
+      paidIncome: sumPaidByType("income"),
     })
     .from(transactions)
     .where(and(gte(transactions.transactedAt, from), lt(transactions.transactedAt, to)))
@@ -90,9 +100,9 @@ export type PeriodSummary = {
 async function sumPeriod(from: Date, to: Date) {
   const [row] = await db
     .select({
-      revenue: sql<string>`coalesce(sum(${transactions.amount}) filter (where ${transactions.type} = 'income'), 0)`,
-      expense: sql<string>`coalesce(sum(${transactions.amount}) filter (where ${transactions.type} = 'expense'), 0)`,
-      paidIncome: sql<string>`coalesce(sum(${transactions.paidAmount}) filter (where ${transactions.type} = 'income'), 0)`,
+      revenue: sumByType("income"),
+      expense: sumByType("expense"),
+      paidIncome: sumPaidByType("income"),
     })
     .from(transactions)
     .where(and(gte(transactions.transactedAt, from), lt(transactions.transactedAt, to)));
@@ -333,8 +343,8 @@ export async function getMonthlyTrend(months = 12): Promise<MonthlyTrendPoint[]>
   const rows = await db
     .select({
       month: monthExpr,
-      revenue: sql<string>`coalesce(sum(${transactions.amount}) filter (where ${transactions.type} = 'income'), 0)`,
-      expense: sql<string>`coalesce(sum(${transactions.amount}) filter (where ${transactions.type} = 'expense'), 0)`,
+      revenue: sumByType("income"),
+      expense: sumByType("expense"),
     })
     .from(transactions)
     .where(and(gte(transactions.transactedAt, from), lt(transactions.transactedAt, to)))

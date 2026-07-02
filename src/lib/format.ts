@@ -1,6 +1,8 @@
 // Định dạng hiển thị (tiền VND, ngày giờ theo giờ VN).
 
-const vndFormatter = new Intl.NumberFormat("vi-VN");
+// Export để Money.tsx dùng chung cho chế độ `bare` (không hậu tố ₫) — tránh
+// một Intl.NumberFormat "vi-VN" thứ 2 có thể trôi cấu hình so với bản này.
+export const vndFormatter = new Intl.NumberFormat("vi-VN");
 
 /** Số tiền đồng → "1.000.000 ₫". */
 export function formatCurrency(amount: number): string {

@@ -1,7 +1,5 @@
 import { cn } from "@/lib/utils";
-import { formatCurrency } from "@/lib/format";
-
-const bareFormatter = new Intl.NumberFormat("vi-VN");
+import { formatCurrency, vndFormatter } from "@/lib/format";
 
 // Con số là nhân vật chính: luôn tabular (cột tiền thẳng), màu theo thu/chi.
 export function Money({
@@ -23,7 +21,7 @@ export function Money({
   return (
     <span className={cn("font-mono tabular", color, className)}>
       {sign}
-      {bare ? bareFormatter.format(amount) : formatCurrency(amount)}
+      {bare ? vndFormatter.format(amount) : formatCurrency(amount)}
     </span>
   );
 }
