@@ -20,7 +20,7 @@ export type GrossProfitDatum = { label: string; grossProfit: number };
 export function GrossProfitBar({ data }: { data: GrossProfitDatum[] }) {
   return (
     <ResponsiveContainer width="100%" height={220}>
-      <BarChart data={data} margin={{ top: 20, right: 8, left: 8, bottom: 0 }}>
+      <BarChart data={data} margin={{ top: 28, right: 8, left: 8, bottom: 0 }}>
         <CartesianGrid vertical={false} stroke="var(--color-border)" strokeWidth={1} />
         <XAxis
           dataKey="label"
@@ -34,6 +34,8 @@ export function GrossProfitBar({ data }: { data: GrossProfitDatum[] }) {
           axisLine={false}
           tickFormatter={compactCurrency}
           width={52}
+          // Chừa headroom để nhãn giá trị trên đỉnh bar không chạm mép plot.
+          domain={[(min: number) => Math.min(0, min), (max: number) => max * 1.15]}
         />
         <Tooltip
           cursor={{ fill: "var(--color-muted)", opacity: 0.4 }}

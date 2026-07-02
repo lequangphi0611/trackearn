@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Plus } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { buttonVariants } from "@/components/ui/button";
 import { Money } from "@/components/Money";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate } from "@/lib/format";
@@ -21,9 +23,18 @@ export function StockSection({ stock }: { stock: DeviceStock }) {
       </CardHeader>
       <CardContent>
         {stock.items.length === 0 ? (
-          <p className="py-4 text-center text-sm text-muted-foreground">
-            Kho đang trống — chưa có máy nào còn hàng.
-          </p>
+          <div className="flex flex-col items-center gap-3 py-4">
+            <p className="text-center text-sm text-muted-foreground">
+              Kho đang trống — chưa có máy nào còn hàng.
+            </p>
+            <Link
+              href="/devices/new"
+              className={cn(buttonVariants({ variant: "outline", size: "sm" }), "max-sm:h-10")}
+            >
+              <Plus />
+              Nhập máy
+            </Link>
+          </div>
         ) : (
           <div className="flex flex-col gap-2">
             <ul className="overflow-hidden rounded-lg border border-border">
