@@ -13,7 +13,12 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
-    "db:seed": "tsx src/db/seed.ts"
+    "db:seed": "tsx src/db/seed.ts",
+    "verify": "playwright test -c verify-env/playwright.config.ts",
+    "verify:desktop": "playwright test -c verify-env/playwright.config.ts --project=chromium",
+    "verify:mobile": "playwright test -c verify-env/playwright.config.ts --project=mobile",
+    "verify:login": "playwright test -c verify-env/playwright.config.ts --project=setup",
+    "verify:browser": "playwright install chromium"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

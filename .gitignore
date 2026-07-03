@@ -43,3 +43,13 @@ docker-compose.override.yml
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+tmp
+
+# playwright verify-env (redundant với verify-env/.gitignore, an toàn hơn)
+/verify-env/node_modules
+/verify-env/verify.config.json
+/verify-env/.auth/storageState.json
+/verify-env/test-results
+/verify-env/playwright-report
+/verify-env/screenshots
