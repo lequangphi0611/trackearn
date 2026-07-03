@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import {
   Dialog,
@@ -38,7 +37,6 @@ export function QuickEntryDialog({
   defaultDateTime: string;
   defaultDate: string;
 }) {
-  const router = useRouter();
   // Store thay useState để FAB ở BottomNav mở được cùng dialog này.
   const open = useQuickEntryStore((s) => s.isOpen);
   const openStore = useQuickEntryStore((s) => s.open);
@@ -63,7 +61,6 @@ export function QuickEntryDialog({
   function handleSuccess() {
     close();
     setLine("");
-    router.refresh();
   }
 
   return (
