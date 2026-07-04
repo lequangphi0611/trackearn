@@ -1,4 +1,6 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
+import { ChevronRight, Users } from "lucide-react";
 import { getCurrentSession } from "@/queries/session";
 import {
   Card,
@@ -8,6 +10,7 @@ import {
 } from "@/components/ui/card";
 import { ProfileForm } from "./ProfileForm";
 import { PasswordForm } from "./PasswordForm";
+import { ThemeToggle } from "./ThemeToggle";
 
 const ROLE_LABELS: Record<string, string> = {
   owner: "Chủ hộ",
@@ -47,12 +50,32 @@ export default async function SettingsPage() {
 
       <Card>
         <CardHeader>
+          <CardTitle>Giao diện</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ThemeToggle />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>Đổi mật khẩu</CardTitle>
         </CardHeader>
         <CardContent>
           <PasswordForm />
         </CardContent>
       </Card>
+
+      {role === "owner" && (
+        <Link
+          href="/settings/users"
+          className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 text-sm font-medium transition-colors hover:bg-muted/50"
+        >
+          <Users className="size-4 text-muted-foreground" />
+          Quản lý người dùng
+          <ChevronRight className="ml-auto size-4 text-muted-foreground" />
+        </Link>
+      )}
     </div>
   );
 }

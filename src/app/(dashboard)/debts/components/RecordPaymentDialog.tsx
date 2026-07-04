@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
@@ -19,6 +19,7 @@ import { Field } from "@/components/forms/Field";
 import { SubmitButton } from "@/components/forms/SubmitButton";
 import { getFormError } from "@/lib/form";
 import { formatCurrency } from "@/lib/format";
+import type { ActionResult } from "@/lib/types";
 import { recordDebtPayment } from "../actions";
 
 export function RecordPaymentDialog({
@@ -32,7 +33,8 @@ export function RecordPaymentDialog({
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [state, formAction] = useActionState(recordDebtPayment, null);
+  const [state, setState] = useState<ActionResult | null>(null);
+  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     if (state?.success) {
@@ -43,12 +45,19 @@ export function RecordPaymentDialog({
       setOpen(false);
       router.refresh();
     }
-    // Deps là `state` (cả object) chứ không phải `state.success`: mỗi lần submit
-    // useActionState trả về object MỚI, nên effect re-fire đúng cho cả lần trả
-    // thứ 2+. Nếu deps [state.success] thì true→true (không đổi) sẽ bỏ sót lần sau.
   }, [state, router]);
 
   const { fieldErrors, formError } = getFormError(state);
+
+  // Gọi Server Action thủ công — xem giải thích ở RestockDialog.tsx.
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    startTransition(async () => {
+      const result = await recordDebtPayment(null, formData);
+      setState(result);
+    });
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -58,7 +67,7 @@ export function RecordPaymentDialog({
           <DialogTitle>Ghi nhận trả</DialogTitle>
           <DialogDescription>Còn lại {formatCurrency(remaining)}</DialogDescription>
         </DialogHeader>
-        <form action={formAction} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <input type="hidden" name="debtId" value={debtId} />
           {formError && (
             <Alert variant="destructive">
@@ -84,7 +93,7 @@ export function RecordPaymentDialog({
           />
           <DialogFooter>
             <DialogClose render={<Button type="button" variant="ghost" size="sm">Huỷ</Button>} />
-            <SubmitButton size="sm">Xác nhận</SubmitButton>
+            <SubmitButton size="sm" pending={isPending}>Xác nhận</SubmitButton>
           </DialogFooter>
         </form>
       </DialogContent>

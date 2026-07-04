@@ -11,11 +11,18 @@ type SubmitButtonProps = {
   variant?: React.ComponentProps<typeof Button>["variant"];
   fullWidth?: boolean;
   className?: string;
+  /** Override cho form gọi Server Action thủ công qua onSubmit (không dùng
+   * <form action={...}>) — useFormStatus không tự biết pending trong trường
+   * hợp đó, caller tự truyền vào (xem TransactionForm, SellDeviceForm,
+   * CreateMemberDialog — bỏ <form action> vì bug treo dialog khi ở trong
+   * Portal, xem tmp/TODO.md US-3). */
+  pending?: boolean;
 };
 
 /**
  * Nút submit dùng chung cho form Server Action: tự disable + hiện spinner
- * khi đang gửi (useFormStatus). Phải đặt bên trong <form action={...}>.
+ * khi đang gửi. Mặc định đọc từ useFormStatus (đặt trong <form action={...}>);
+ * truyền `pending` để override khi form tự quản lý pending state.
  */
 export function SubmitButton({
   children,
@@ -23,8 +30,10 @@ export function SubmitButton({
   variant,
   fullWidth,
   className,
+  pending: pendingProp,
 }: SubmitButtonProps) {
-  const { pending } = useFormStatus();
+  const { pending: formPending } = useFormStatus();
+  const pending = pendingProp ?? formPending;
   return (
     <Button
       type="submit"

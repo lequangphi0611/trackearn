@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Settings, LogOut } from "lucide-react";
+import { Settings, LogOut, ChartColumn, Users } from "lucide-react";
 import { Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger } from "@/components/ui/menu";
 import { signOut } from "@/lib/auth-client";
 
@@ -16,7 +16,7 @@ function initial(name: string): string {
 
 // Menu hồ sơ ở header: avatar chữ-cái-đầu → Cài đặt + Đăng xuất. Gom các đích
 // ít dùng ra khỏi thanh nav dưới (vùng ngón cái) cho gọn.
-export function UserMenu({ name }: { name: string }) {
+export function UserMenu({ name, isOwner }: { name: string; isOwner: boolean }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
 
@@ -49,6 +49,18 @@ export function UserMenu({ name }: { name: string }) {
         <div className="border-b border-border px-3 py-1.5 text-xs text-muted-foreground">
           {name}
         </div>
+        {isOwner && (
+          <MenuItem render={<Link href="/reports" />} className="gap-2">
+            <ChartColumn className="size-4" />
+            Báo cáo
+          </MenuItem>
+        )}
+        {isOwner && (
+          <MenuItem render={<Link href="/settings/users" />} className="gap-2">
+            <Users className="size-4" />
+            Người dùng
+          </MenuItem>
+        )}
         <MenuItem render={<Link href="/settings" />} className="gap-2">
           <Settings className="size-4" />
           Cài đặt

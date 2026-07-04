@@ -7,6 +7,7 @@ import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger } from "@/components/ui/menu";
 import { TRANSACTION_LINES } from "@/lib/transaction-lines";
+import { useQuickEntryStore } from "@/lib/quick-entry-store";
 
 type Tab = {
   href: string;
@@ -50,24 +51,28 @@ function TabLink({ tab, active }: { tab: Tab; active: boolean }) {
       href={tab.href}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "flex flex-1 flex-col items-center justify-center gap-1 py-2 text-[11px] font-medium transition-colors",
+        "flex flex-1 flex-col items-center justify-center gap-1 py-2 text-[11px] font-medium transition-colors active:bg-muted active:text-foreground",
         active
           ? "text-foreground"
           : "text-muted-foreground hover:text-foreground",
       )}
     >
       <Icon
-        className={cn("size-5", active && "text-brand")}
+        className={cn("size-5 transition-colors", active && "text-brand")}
         strokeWidth={active ? 2.4 : 2}
       />
-      <span className="leading-none">{tab.label}</span>
+      <span className="leading-none max-w-full truncate">{tab.label}</span>
     </Link>
   );
 }
 
+const FAB_CLASS =
+  "-mt-5 flex size-14 items-center justify-center rounded-full bg-brand text-brand-foreground shadow-lg ring-4 ring-background transition-transform active:scale-95";
+
 // Nav dưới đáy — chỉ mobile. Desktop dùng thanh ngang (DashboardNav) ở header.
 export function BottomNav() {
   const pathname = usePathname();
+  const openQuickEntry = useQuickEntryStore((s) => s.open);
 
   return (
     <nav
@@ -79,28 +84,38 @@ export function BottomNav() {
           <TabLink key={t.href} tab={t} active={t.match(pathname)} />
         ))}
 
-        {/* Nút nhập nhanh — việc #1 của app, nổi bật ở giữa. */}
+        {/* Nút nhập nhanh — việc #1 của app, nổi bật ở giữa. Trên dashboard
+            mở thẳng QuickEntryDialog (cùng dialog với nút đầu trang — 1 hành
+            vi); trang khác giữ menu điều hướng tới màn nhập. */}
         <div className="flex flex-1 items-start justify-center">
-          <Menu>
-            <MenuTrigger
+          {pathname === "/" ? (
+            <button
+              type="button"
               aria-label="Nhập giao dịch"
-              className="-mt-5 flex size-14 items-center justify-center rounded-full bg-brand text-brand-foreground shadow-lg ring-4 ring-background transition-transform active:scale-95"
+              onClick={openQuickEntry}
+              className={FAB_CLASS}
             >
               <Plus className="size-6" />
-            </MenuTrigger>
-            <MenuContent side="top" align="center" className="mb-2">
-              {TRANSACTION_LINES.map((l) => (
-                <MenuItem
-                  key={l.slug}
-                  render={<Link href={`/transactions/${l.slug}/new`} />}
-                >
-                  {l.label}
-                </MenuItem>
-              ))}
-              <MenuSeparator className="my-1 h-px bg-border" />
-              <MenuItem render={<Link href="/repair-jobs/new" />}>Job sửa xe múc</MenuItem>
-            </MenuContent>
-          </Menu>
+            </button>
+          ) : (
+            <Menu>
+              <MenuTrigger aria-label="Nhập giao dịch" className={FAB_CLASS}>
+                <Plus className="size-6" />
+              </MenuTrigger>
+              <MenuContent side="top" align="center" className="mb-2">
+                {TRANSACTION_LINES.map((l) => (
+                  <MenuItem
+                    key={l.slug}
+                    render={<Link href={`/transactions/${l.slug}/new`} />}
+                  >
+                    {l.label}
+                  </MenuItem>
+                ))}
+                <MenuSeparator className="my-1 h-px bg-border" />
+                <MenuItem render={<Link href="/repair-jobs/new" />}>Job sửa xe múc</MenuItem>
+              </MenuContent>
+            </Menu>
+          )}
         </div>
 
         {RIGHT.map((t) => (

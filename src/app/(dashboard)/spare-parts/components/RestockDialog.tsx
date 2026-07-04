@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { PackagePlus } from "lucide-react";
@@ -20,6 +20,7 @@ import { Field } from "@/components/forms/Field";
 import { SubmitButton } from "@/components/forms/SubmitButton";
 import { getFormError } from "@/lib/form";
 import { formatCurrency } from "@/lib/format";
+import type { ActionResult } from "@/lib/types";
 import { restockSparePart } from "../actions";
 
 export function RestockDialog({
@@ -33,7 +34,8 @@ export function RestockDialog({
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [state, formAction] = useActionState(restockSparePart, null);
+  const [state, setState] = useState<ActionResult | null>(null);
+  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     if (state?.success) {
@@ -48,6 +50,18 @@ export function RestockDialog({
 
   const { fieldErrors, formError } = getFormError(state);
 
+  // Gọi Server Action thủ công thay vì <form action={dispatch}> — form trong
+  // Dialog (Portal) từng bị "kẹt" ~30% số lần do state không resolve dù server
+  // xử lý xong (xem docs/coding-rules.md § Server Actions trong Dialog).
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    startTransition(async () => {
+      const result = await restockSparePart(null, formData);
+      setState(result);
+    });
+  }
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={<Button size="sm"><PackagePlus />Nhập thêm</Button>} />
@@ -58,7 +72,7 @@ export function RestockDialog({
             Cộng tồn + cập nhật giá vốn bình quân. Giá vốn hiện tại {formatCurrency(buyPrice)}/{unit}.
           </DialogDescription>
         </DialogHeader>
-        <form action={formAction} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <input type="hidden" name="id" value={id} />
           {formError && (
             <Alert variant="destructive">
@@ -86,7 +100,7 @@ export function RestockDialog({
           />
           <DialogFooter>
             <DialogClose render={<Button type="button" variant="ghost" size="sm">Huỷ</Button>} />
-            <SubmitButton size="sm">Xác nhận nhập</SubmitButton>
+            <SubmitButton size="sm" pending={isPending}>Xác nhận nhập</SubmitButton>
           </DialogFooter>
         </form>
       </DialogContent>

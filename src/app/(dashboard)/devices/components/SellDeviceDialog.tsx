@@ -35,12 +35,12 @@ export function SellDeviceDialog({ id, defaultDate }: { id: string; defaultDate:
             setOpen(false);
             router.refresh();
           }}
-          footer={
+          footer={(pending) => (
             <DialogFooter>
               <DialogClose render={<Button type="button" variant="ghost" size="sm">Huỷ</Button>} />
-              <SubmitButton size="sm">Xác nhận bán</SubmitButton>
+              <SubmitButton size="sm" pending={pending}>Xác nhận bán</SubmitButton>
             </DialogFooter>
-          }
+          )}
         />
       </DialogContent>
     </Dialog>

@@ -13,7 +13,12 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
-    "db:seed": "tsx src/db/seed.ts"
+    "db:seed": "tsx src/db/seed.ts",
+    "verify": "playwright test -c verify-env/playwright.config.ts",
+    "verify:desktop": "playwright test -c verify-env/playwright.config.ts --project=chromium",
+    "verify:mobile": "playwright test -c verify-env/playwright.config.ts --project=mobile",
+    "verify:login": "playwright test -c verify-env/playwright.config.ts --project=setup",
+    "verify:browser": "playwright install chromium"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
@@ -22,11 +27,12 @@
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.45.2",
     "lucide-react": "^1.21.0",
-    "next": "16.2.9",
+    "next": "16.2.10",
     "pino": "^10.3.1",
     "postgres": "^3.4.9",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "recharts": "^3.9.1",
     "shadcn": "^4.11.0",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.6.0",
@@ -35,6 +41,7 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@playwright/test": "^1.50.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

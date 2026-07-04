@@ -28,6 +28,47 @@ export async function getDebtRemainingTotal(direction: DebtDirection): Promise<n
   return Number(row?.remaining ?? 0);
 }
 
+export type OpenDebt = {
+  id: string;
+  counterpartyName: string;
+  total: number;
+  paid: number;
+  dueDate: string | null;
+  businessLine: string | null;
+};
+
+/**
+ * Toàn bộ công nợ chưa tất toán, tách 2 chiều — cho dashboard (trạng thái
+ * hiện tại, không lọc theo ngày). Quá hạn do UI đánh dấu bằng isOverdue().
+ */
+export async function getOpenDebts(): Promise<{
+  receivable: OpenDebt[];
+  payable: OpenDebt[];
+}> {
+  const rows = await db
+    .select({
+      id: debts.id,
+      direction: debts.direction,
+      counterpartyName: debts.counterpartyName,
+      total: debts.total,
+      paid: debts.paid,
+      dueDate: debts.dueDate,
+      businessLine: transactions.businessLine,
+    })
+    .from(debts)
+    .innerJoin(transactions, eq(transactions.id, debts.transactionId))
+    .where(isNull(debts.settledAt))
+    .orderBy(sql`${debts.dueDate} asc nulls last`, desc(transactions.transactedAt));
+
+  // 1 lượt duyệt thay vì filter() 2 lần trên cùng mảng đã fetch.
+  const receivable: OpenDebt[] = [];
+  const payable: OpenDebt[] = [];
+  for (const r of rows) {
+    (r.direction === "receivable" ? receivable : payable).push(r);
+  }
+  return { receivable, payable };
+}
+
 /** Danh sách công nợ theo tab/chiều + lọc; sắp quá hạn/gần hạn lên trước. */
 export async function getDebts(f: DebtFilters) {
   const page = Math.min(f.page ?? 0, MAX_PAGE);

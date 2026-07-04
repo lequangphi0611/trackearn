@@ -1,0 +1,10 @@
+# Secrets & session — KHÔNG commit
+verify.config.json
+.auth/storageState.json
+
+# Artifacts do Playwright sinh ra
+test-results/
+playwright-report/
+
+# Spec tạm do skill verify tạo cho từng lần chạy
+tests/*.tmp.spec.ts

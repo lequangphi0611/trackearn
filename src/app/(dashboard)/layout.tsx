@@ -14,6 +14,7 @@ export default async function DashboardLayout({
   // Defense-in-depth ngoài proxy: xác thực session thật khi render.
   const session = await getCurrentSession();
   if (!session) redirect("/login");
+  const isOwner = session.user.role === "owner";
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -27,9 +28,9 @@ export default async function DashboardLayout({
               <Logo className="size-6 rounded-md" />
               <span>TrackEarn</span>
             </Link>
-            <DashboardNav />
+            <DashboardNav isOwner={isOwner} />
           </div>
-          <UserMenu name={session.user.name} />
+          <UserMenu name={session.user.name} isOwner={isOwner} />
         </div>
       </header>
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 pt-6 pb-24 sm:pb-8">

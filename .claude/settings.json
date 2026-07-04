@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(pnpm dlx shadcn@latest init --defaults 2>&1)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(pnpm dev)",
+      "Bash(pnpm run dev)",
+      "Bash(pnpm verify*)",
+      "Bash(pnpm exec playwright *)",
+      "Bash(npx playwright *)",
+      "PowerShell(pnpm dev*)",
+      "PowerShell(pnpm run dev*)",
+      "PowerShell(pnpm verify*)",
+      "PowerShell(pnpm exec playwright *)",
+      "PowerShell(npx playwright *)",
+      "Read(verify-env/**)",
+      "Write(verify-env/**)",
+      "Edit(verify-env/**)",
+      "Bash(cd verify-env*)",
+      "PowerShell(cd verify-env*)"
+    ],
+    "deny": ["Bash(rm *)", "Bash(git push --force*)", "Bash(git reset --hard*)"]
+  }
+}

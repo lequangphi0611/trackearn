@@ -24,7 +24,11 @@ export function ProfileForm({ defaultName }: { defaultName: string }) {
   const { fieldErrors } = getFormError(state);
 
   return (
-    <form action={formAction} className="flex flex-col gap-1.5">
+    // key={defaultName}: remount khi server trả defaultName mới (sau
+    // router.refresh() lúc lưu thành công) thay vì đổi defaultValue của
+    // input uncontrolled tại chỗ — tránh warning Base UI + giữ đúng hành vi
+    // uncontrolled (chọn lại "nguồn sự thật" mới từ server sau mỗi lần lưu).
+    <form key={defaultName} action={formAction} className="flex flex-col gap-1.5">
       <Field
         label="Họ tên"
         name="name"

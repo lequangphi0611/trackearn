@@ -1,6 +1,8 @@
 // Định dạng hiển thị (tiền VND, ngày giờ theo giờ VN).
 
-const vndFormatter = new Intl.NumberFormat("vi-VN");
+// Export để Money.tsx dùng chung cho chế độ `bare` (không hậu tố ₫) — tránh
+// một Intl.NumberFormat "vi-VN" thứ 2 có thể trôi cấu hình so với bản này.
+export const vndFormatter = new Intl.NumberFormat("vi-VN");
 
 /** Số tiền đồng → "1.000.000 ₫". */
 export function formatCurrency(amount: number): string {
@@ -54,4 +56,23 @@ const timeFormatter = new Intl.DateTimeFormat("vi-VN", {
 /** Mốc thời gian → giờ:phút VN. */
 export function formatTime(value: Date | string): string {
   return timeFormatter.format(typeof value === "string" ? new Date(value) : value);
+}
+
+/**
+ * Tên danh mục chi phí cho UI chật (badge, meta row, nhãn trục chart):
+ * bỏ phần chú giải trong ngoặc, cắt tên quá dài. Tên đầy đủ giữ cho select.
+ */
+export function shortCategoryName(name: string): string {
+  const short = name.replace(/\s*\(.*\)\s*$/, "").trim();
+  return short.length > 18 ? `${short.slice(0, 17)}…` : short;
+}
+
+/**
+ * % thay đổi so kỳ trước → "+12%" / "−8%"; `null` khi kỳ trước = 0 (UI hiện "—").
+ * Mẫu số |prev| để kỳ trước âm (lãi âm) không lật dấu chiều thay đổi.
+ */
+export function formatPercentChange(current: number, prev: number): string | null {
+  if (prev === 0) return null;
+  const pct = Math.round(((current - prev) / Math.abs(prev)) * 100);
+  return `${pct > 0 ? "+" : ""}${pct}%`;
 }

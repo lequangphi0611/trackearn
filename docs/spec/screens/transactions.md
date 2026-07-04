@@ -14,7 +14,7 @@ Mỗi nhóm gồm 3 route con: **danh sách** (`/...`), **nhập** (`/.../new`),
 
 ---
 
-## 2. Bốn màn & ràng buộc
+## 2. Bốn màn + 1 view tổng hợp
 
 | Route gốc | `business_line_id` | Loại cho phép |
 |-----------|--------------------|----------------|
@@ -22,9 +22,13 @@ Mỗi nhóm gồm 3 route con: **danh sách** (`/...`), **nhập** (`/.../new`),
 | `/transactions/thiet-bi` | `thiet_bi` | income + expense |
 | `/transactions/phu-kien` | `phu_kien` | income + expense |
 | `/transactions/chi-phi-chung` | `NULL` | **chỉ expense** |
+| `/transactions` (không có mảng) | **tất cả** (không lọc `business_line_id`, gồm cả `NULL`) | income + expense (read-only, không có nút "Nhập" — phải vào đúng 1 mảng để nhập) |
 
 - **Quyền**: owner + member (đã đăng nhập).
 - `business_line_id` **cố định theo route**, không cho người nhập đổi (nhập đúng mảng đang đứng).
+- `/transactions` (view tổng hợp) thay thế menu tĩnh trước đây — dùng chung component với 4 màn trên, chỉ khác không lọc `business_line_id`. Có **tab điều hướng nhanh** "Tất cả | Xe múc | Thiết bị | Phụ kiện | Chi phí chung" ở đầu trang; chuyển tab = đổi route, **giữ nguyên** các filter khác (`from`/`to`/`type`/`status`/`q`).
+- Lý do cần view này: một số số liệu ở [báo cáo](./reports.md) §4.5 (Doanh thu/Chi phí tổng, Chi phí theo danh mục) gộp **tất cả mảng** — không có route theo-từng-mảng nào cho ra đúng tổng đó khi click.
+- Danh sách ở view tổng hợp hiện thêm **cột "Mảng"** cho mỗi dòng (per-line không cần vì đã rõ theo route); bấm vào 1 dòng dẫn đúng `/transactions/<mảng-của-dòng>/[id]` (route chi tiết vẫn theo mảng thật của giao dịch đó, kể cả khi đang xem ở view tổng hợp).
 
 ---
 
@@ -33,11 +37,12 @@ Mỗi nhóm gồm 3 route con: **danh sách** (`/...`), **nhập** (`/.../new`),
 ### 3.1. Cột hiển thị
 Ngày giờ (`transacted_at`), loại (thu/chi), số tiền (`amount`), **đã trả** & **còn lại** (2 giá trị: `paid_amount` và `amount − paid_amount`), trạng thái thanh toán (paid·partial·pending), danh mục (nếu expense), người nhập, **nguồn** (Tay / Tự sinh).
 
-### 3.2. Bộ lọc (URL state — `?from=&to=&type=&status=&q=&page=`)
+### 3.2. Bộ lọc (URL state — `?from=&to=&type=&status=&q=&page=&categoryId=&excludeCategoryId=`)
 - **Khoảng ngày** (`from`–`to`), mặc định **tháng hiện tại**.
 - **Loại** thu / chi.
 - **Trạng thái thanh toán** (paid / partial / pending).
 - **Tìm text** (`q`) trên `note` và `counterparty_name`.
+- **`categoryId`** (uuid, lọc đúng 1 danh mục chi phí) và **`excludeCategoryId`** (uuid, loại trừ 1 danh mục) — **chỉ nhận qua URL**, phục vụ link drill-down từ [báo cáo](./reports.md) §4.5; không cần thêm ô chọn danh mục trong UI filter (xem §9 nếu muốn mở rộng sau).
 
 ### 3.3. Tải dữ liệu
 - Nút **"Xem thêm"** (load-more, hợp mobile), mỗi lần tải **20** dòng, sắp xếp `transacted_at` giảm dần.
@@ -109,6 +114,10 @@ Form (client component) → Server Action `createTransaction` trả `ActionResul
 - [ ] Form expense hiện chọn danh mục (mặc định `other`); form income ẩn danh mục.
 - [ ] Giao dịch tự sinh: đánh dấu, chỉ đọc, có link về nguồn; không sửa/xoá trực tiếp.
 - [ ] Xoá giao dịch tay bị chặn khi `debt.paid > 0`.
+- [ ] `/transactions` (không mảng) hiển thị đúng giao dịch của **tất cả mảng** (kể cả chi phí chung), tôn trọng cùng bộ filter `from/to/type/status/q` + `categoryId`/`excludeCategoryId` qua URL.
+- [ ] Tab "Tất cả | Xe múc | Thiết bị | Phụ kiện | Chi phí chung" chuyển route đúng, giữ nguyên filter khác.
+- [ ] View tổng hợp có cột "Mảng"; bấm 1 dòng dẫn đúng `/transactions/<mảng-của-dòng>/[id]` (không phải mảng đang xem).
+- [ ] Tổng số tiền (income/expense) trên `/transactions` với 1 bộ filter cụ thể khớp tuyệt đối với số tương ứng đã click từ [báo cáo](./reports.md) §4.5.
 
 ---
 
@@ -116,3 +125,5 @@ Form (client component) → Server Action `createTransaction` trả `ActionResul
 
 1. **Sửa số tiền giao dịch đã có công nợ trả dở**: cho sửa `amount` (tính lại còn-nợ) hay chặn như xoá? → đề xuất **cho sửa nhưng cảnh báo**, tính lại công nợ.
 2. **Xuất dữ liệu** (CSV) từ màn list → để mở, chưa thuộc MVP.
+3. **Ô chọn danh mục thủ công** trong UI filter (hiện `categoryId`/`excludeCategoryId` chỉ nhận qua URL từ link báo cáo) → để mở, có thể thêm nếu người dùng cần tự lọc theo danh mục mà không qua báo cáo.
+4. **Filter theo mảng thủ công ở view tổng hợp** (ngoài việc chuyển tab) → hiện dùng tab là đủ; nếu cần lọc nhiều mảng cùng lúc (vd 2/3 mảng) → để mở.

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Be_Vietnam_Pro, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
@@ -21,6 +21,14 @@ export const metadata: Metadata = {
   description: "Sổ thu chi cho hộ kinh doanh",
 };
 
+export const viewport: Viewport = {
+  viewportFit: "cover",
+};
+
+// Chạy TRƯỚC hydration để không chớp sáng/tối sai theme (FOUC).
+// localStorage.theme: "light" | "dark"; không có = theo hệ thống.
+const themeInitScript = `(function(){try{var t=localStorage.getItem("theme");var dark=t==="dark"||(t!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",dark);}catch(e){}})()`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -30,7 +38,12 @@ export default function RootLayout({
     <html
       lang="vi"
       className={`${sans.variable} ${mono.variable} h-full antialiased`}
+      // class "dark" do script dưới set trước hydration → server không biết.
+      suppressHydrationWarning
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body className="flex min-h-full flex-col">
         {children}
         <Toaster />

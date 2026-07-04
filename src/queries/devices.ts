@@ -37,6 +37,34 @@ export async function getInStockSummary(): Promise<{ count: number; capital: num
   return { count: Number(row?.count ?? 0), capital: Number(row?.capital ?? 0) };
 }
 
+export type DeviceStock = {
+  items: {
+    id: string;
+    name: string;
+    conditionNote: string | null;
+    buyPrice: number;
+    buyDate: string | null;
+  }[];
+  capital: number;
+};
+
+/** Toàn bộ máy còn hàng + tổng vốn tồn — cho dashboard (trạng thái hiện tại). */
+export async function getDeviceStock(): Promise<DeviceStock> {
+  const items = await db
+    .select({
+      id: devices.id,
+      name: devices.name,
+      conditionNote: devices.conditionNote,
+      buyPrice: devices.buyPrice,
+      buyDate: devices.buyDate,
+    })
+    .from(devices)
+    .where(eq(devices.status, "in_stock"))
+    .orderBy(desc(devices.buyDate), desc(devices.id));
+
+  return { items, capital: items.reduce((s, d) => s + d.buyPrice, 0) };
+}
+
 /** Danh sách máy còn hàng gọn nhẹ, cho ô chọn "gắn với máy" khi ghi Thu mảng thiết bị. */
 export async function getInStockDevicesForPicker() {
   return db

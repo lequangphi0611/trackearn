@@ -144,6 +144,7 @@ export const recordDebtPayment = withActionContext(
         });
         return { success: false, code: result.code, error: result.error };
       }
+      revalidatePath("/");
       revalidatePath("/debts");
       revalidatePath("/transactions", "layout");
       return { success: true, data: undefined };
@@ -187,6 +188,7 @@ export const updateDebt = withActionContext(
           dueDate: dueDate?.trim() || null,
         })
         .where(eq(debts.id, debtId));
+      revalidatePath("/");
       revalidatePath("/debts");
       return { success: true, data: undefined };
     } catch (err) {

@@ -10,6 +10,7 @@ import { setUserId } from "@/lib/request-context";
 import { logError, logWarn } from "@/lib/logger";
 import { ErrorCode, type ActionError, type ActionResult } from "@/lib/types";
 import { zodActionError } from "@/lib/form";
+import { formatQuantity } from "@/lib/format";
 import {
   adjustStockSchema,
   createOrRestockSchema,
@@ -41,6 +42,10 @@ function weightedBuyPrice(qOld: number, pOld: number, qIn: number, pIn: number):
   return Math.round((qOld * pOld + qIn * pIn) / (qOld + qIn));
 }
 
+function restockNote(name: string, qty: number, unit: string): string {
+  return `Nhập phụ tùng: ${name} — ${formatQuantity(qty, unit)}`;
+}
+
 /**
  * Cộng tồn + cập nhật BQGQ + sinh expense cost_of_goods/xe_muc cho 1 lần nhập.
  * `part` phải đã khóa FOR UPDATE. Trả về tồn/giá mới.
@@ -66,7 +71,7 @@ async function applyRestock(tx: Tx, userId: string, part: Part, qIn: number, pIn
     categoryId,
     userId,
     sourceKind: "manual", // người dùng chủ động nhập kho
-    note: `Nhập phụ tùng: ${part.name}`,
+    note: restockNote(part.name, qIn, part.unit),
     transactedAt: new Date(),
   });
 }
@@ -122,12 +127,13 @@ export const createOrRestockSparePart = withActionContext(
           categoryId,
           userId: session.user.id,
           sourceKind: "manual",
-          note: `Nhập phụ tùng: ${d.name}`,
+          note: restockNote(d.name, d.quantity, d.unit),
           transactedAt: new Date(),
         });
         return row.id;
       });
 
+      revalidatePath("/");
       revalidatePath("/spare-parts");
       revalidatePath("/transactions/xe-muc");
       return { success: true, data: { id } };
@@ -166,6 +172,7 @@ export const restockSparePart = withActionContext(
         logWarn("restockSparePart", result.error, { code: result.code, input: { id: d.id } });
         return { success: false, code: result.code, error: result.error };
       }
+      revalidatePath("/");
       revalidatePath("/spare-parts");
       revalidatePath(`/spare-parts/${d.id}`);
       revalidatePath("/transactions/xe-muc");
@@ -193,6 +200,7 @@ export const updateSparePart = withActionContext(
         .update(spareParts)
         .set({ name: d.name, unit: d.unit, minQuantity: String(d.minQuantity) })
         .where(eq(spareParts.id, d.id));
+      revalidatePath("/");
       revalidatePath("/spare-parts");
       revalidatePath(`/spare-parts/${d.id}`);
       return { success: true, data: undefined };
@@ -220,6 +228,7 @@ export const adjustStock = withActionContext(
         .update(spareParts)
         .set({ quantity: String(d.quantity) })
         .where(eq(spareParts.id, d.id));
+      revalidatePath("/");
       revalidatePath("/spare-parts");
       revalidatePath(`/spare-parts/${d.id}`);
       return { success: true, data: undefined };
@@ -261,6 +270,7 @@ export const deleteSparePart = withActionContext(
         logWarn("deleteSparePart", result.error, { code: result.code, input: { id: parsed.data.id } });
         return { success: false, code: result.code, error: result.error };
       }
+      revalidatePath("/");
       revalidatePath("/spare-parts");
       return { success: true, data: undefined };
     } catch (err) {
