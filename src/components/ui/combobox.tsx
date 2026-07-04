@@ -27,7 +27,7 @@ function ComboboxInput({ className, ...props }: React.ComponentProps<typeof Base
   return (
     <BaseCombobox.Input
       className={cn(
-        "h-full w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground",
+        "h-full w-full bg-transparent text-base outline-none placeholder:text-muted-foreground sm:text-sm",
         className,
       )}
       {...props}
