@@ -23,6 +23,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   viewportFit: "cover",
+  themeColor: "#E0A020",
 };
 
 // Chạy TRƯỚC hydration để không chớp sáng/tối sai theme (FOUC).

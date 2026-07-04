@@ -76,6 +76,13 @@ pnpm verify:desktop   # chỉ desktop
 pnpm verify:mobile    # chỉ mobile
 ```
 
+PWA (manifest/service worker) chỉ hoạt động ở production build — test riêng
+qua `pnpm verify:pwa` (build production ở port 3100, không đụng port 3000/dev):
+
+```bash
+pnpm verify:pwa       # next build && next start -p 3100, rồi chạy verify-env/tests/pwa.spec.ts
+```
+
 ## Scripts khác
 
 | Lệnh | Vai trò |
@@ -84,3 +91,4 @@ pnpm verify:mobile    # chỉ mobile
 | `pnpm db:push` | Đẩy schema thẳng vào DB (dev, không qua migration file) |
 | `pnpm db:seed` | Seed dữ liệu mẫu |
 | `pnpm auth:generate` | Sinh lại Better Auth schema/types |
+| `pnpm generate:pwa-icons` | Sinh lại icon PWA (192/512/maskable) từ `src/app/icon.svg` — chạy lại nếu đổi brand |

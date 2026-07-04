@@ -18,7 +18,9 @@
     "verify:desktop": "playwright test -c verify-env/playwright.config.ts --project=chromium",
     "verify:mobile": "playwright test -c verify-env/playwright.config.ts --project=mobile",
     "verify:login": "playwright test -c verify-env/playwright.config.ts --project=setup",
-    "verify:browser": "playwright install chromium"
+    "verify:browser": "playwright install chromium",
+    "verify:pwa": "playwright test -c verify-env/playwright.pwa.config.ts",
+    "generate:pwa-icons": "tsx scripts/generate-pwa-icons.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
@@ -50,6 +52,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
     "pino-pretty": "^13.1.3",
+    "sharp": "^0.34.4",
     "tailwindcss": "^4",
     "tsx": "^4.20.6",
     "typescript": "^5"
