@@ -1,36 +1,86 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TrackEarn
 
-## Getting Started
+Web app quản lý doanh thu cho hộ kinh doanh nhỏ — thay thế Excel và giấy tờ.
 
-First, run the development server:
+Xem thêm tài liệu chi tiết trong [CLAUDE.md](CLAUDE.md) và [docs/](docs/) (business
+overview, tech stack, architecture, spec từng màn hình, coding rules).
+
+## Yêu cầu
+
+- Node.js 22
+- pnpm (`corepack enable pnpm`) — **không dùng npm/yarn**, xem `packageManager` trong `package.json`
+- Docker + Docker Compose (nếu chạy qua container)
+
+## Chạy dev (không qua Docker)
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+docker compose up -d db          # Postgres dev, map ra host port 5433
+cp .env.example .env.local        # rồi sửa DATABASE_URL point vào port 5433
+pnpm db:migrate
+pnpm dev                          # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+> Lưu ý: Postgres dev chạy ở **port 5433** trên host (container bên trong vẫn là
+> 5432) để tránh đụng một Postgres khác có sẵn trên máy — xem `docker-compose.yml`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Build & chạy qua Docker
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+`docker-compose.yml` định nghĩa 3 service: `db` (Postgres), `migrate` (chạy
+`drizzle-kit migrate` một lần rồi thoát), `app` (Next.js production build,
+`Dockerfile` multi-stage: `deps` → `builder` → `runner` standalone output).
 
-## Learn More
+```bash
+cp .env.example .env              # điền BETTER_AUTH_SECRET, ADMIN_USER/PASS thật
+docker compose up -d --build      # build image app, chạy migrate, rồi start app
+docker compose logs -f app        # theo dõi log
+docker compose down               # dừng (thêm -v để xoá luôn volume DB)
+```
 
-To learn more about Next.js, take a look at the following resources:
+`app` chỉ start sau khi `db` healthy và `migrate` chạy xong thành công
+(`depends_on: condition: service_completed_successfully`). App expose ở
+`http://localhost:3000`; đưa qua HTTPS/domain thật thì dùng `nginx.conf` làm
+reverse proxy mẫu (proxy `localhost:3000`, Certbot tự chèn redirect HTTPS).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Verify linting
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+pnpm lint
+```
 
-## Deploy on Vercel
+Dùng ESLint flat config (`eslint.config.mjs`) kế thừa `eslint-config-next`
+(`core-web-vitals` + `typescript`). Không có lệnh `typecheck` riêng — type error
+lộ ra khi `pnpm build` (Next.js build chạy `tsc` như một phần build).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Verify app (kiểm chứng end-to-end)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Ngoài lint/build, thay đổi trên app nên được **verify thật** qua Playwright
+thay vì chỉ đọc code:
+
+- Hạ tầng chạy nằm ở `verify-env/` — Playwright đăng nhập sẵn (Better Auth),
+  chạy trên **DB dev thật (port 5433)**, có 2 project `chromium` (desktop) và
+  `mobile` (Pixel 5, sát PWA thật nhất). Chi tiết setup/chạy: xem
+  [verify-env/README.md](verify-env/README.md).
+- Trong Claude Code, dùng skill **`verify-app`** (`.claude/skills/verify-app/SKILL.md`)
+  — wrapper quanh skill `verify` chuẩn, cộng thêm knowledge base bền vững
+  (`verify-env/knowledge/system-map.md`, `step-map.md`, `locator-map.md`,
+  `ERROR.md`) để không phải grep lại source mỗi lần verify.
+
+Lệnh chạy nhanh (cần `docker compose up -d db` trước):
+
+```bash
+pnpm verify:browser   # cài Chromium cho Playwright (một lần)
+pnpm verify:login     # đăng nhập, lưu session vào verify-env/.auth/
+pnpm verify           # chạy tests/ trên cả desktop + mobile
+pnpm verify:desktop   # chỉ desktop
+pnpm verify:mobile    # chỉ mobile
+```
+
+## Scripts khác
+
+| Lệnh | Vai trò |
+|---|---|
+| `pnpm db:generate` | Sinh migration Drizzle từ schema |
+| `pnpm db:push` | Đẩy schema thẳng vào DB (dev, không qua migration file) |
+| `pnpm db:seed` | Seed dữ liệu mẫu |
+| `pnpm auth:generate` | Sinh lại Better Auth schema/types |

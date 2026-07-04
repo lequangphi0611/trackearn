@@ -2,6 +2,8 @@
 
 Web app quản lý doanh thu cho hộ kinh doanh nhỏ — thay thế Excel và giấy tờ.
 
+@README.md
+
 ## Tài liệu
 
 - [Business Overview](docs/business-overview.md) — bài toán, 3 mảng kinh doanh, người dùng, nhu cầu báo cáo
