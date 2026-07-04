@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Field } from "@/components/forms/Field";
 import { SubmitButton } from "@/components/forms/SubmitButton";
 import { getFormError } from "@/lib/form";
+import type { ActionResult } from "@/lib/types";
 import { resetMemberPassword } from "../actions";
 
 export function ResetPasswordDialog({
@@ -29,16 +30,33 @@ export function ResetPasswordDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const [state, formAction] = useActionState(resetMemberPassword, null);
+  const [state, setState] = useState<ActionResult | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  // Ref giữ onOpenChange mới nhất — xem giải thích ở BanMemberDialog.tsx.
+  const onOpenChangeRef = useRef(onOpenChange);
+  useEffect(() => {
+    onOpenChangeRef.current = onOpenChange;
+  });
 
   useEffect(() => {
     if (state?.success) {
       toast.success("Đã đặt lại mật khẩu");
-      onOpenChange(false);
+      onOpenChangeRef.current(false);
     }
-  }, [state, onOpenChange]);
+  }, [state]);
 
   const { fieldErrors, formError } = getFormError(state);
+
+  // Gọi Server Action thủ công — xem giải thích ở RestockDialog.tsx.
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    startTransition(async () => {
+      const result = await resetMemberPassword(null, formData);
+      setState(result);
+    });
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -49,7 +67,7 @@ export function ResetPasswordDialog({
             Đặt mật khẩu mới cho thành viên, không cần mật khẩu cũ.
           </DialogDescription>
         </DialogHeader>
-        <form action={formAction} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <input type="hidden" name="userId" value={userId} />
           {formError && (
             <Alert variant="destructive">
@@ -72,7 +90,9 @@ export function ResetPasswordDialog({
                 </Button>
               }
             />
-            <SubmitButton size="sm">Đặt lại mật khẩu</SubmitButton>
+            <SubmitButton size="sm" pending={isPending}>
+              Đặt lại mật khẩu
+            </SubmitButton>
           </DialogFooter>
         </form>
       </DialogContent>

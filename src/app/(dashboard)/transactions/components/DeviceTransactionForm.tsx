@@ -115,7 +115,7 @@ export function DeviceTransactionForm({
                 id={selected.value}
                 defaultDate={defaultDate}
                 onSuccess={onSuccess ?? (() => router.push(`/transactions/${line}`))}
-                footer={
+                footer={(pending) => (
                   <div
                     className={
                       stickySubmit
@@ -123,11 +123,11 @@ export function DeviceTransactionForm({
                         : undefined
                     }
                   >
-                    <SubmitButton size="lg" fullWidth>
+                    <SubmitButton size="lg" fullWidth pending={pending}>
                       Lưu giao dịch
                     </SubmitButton>
                   </div>
-                }
+                )}
               />
             )}
           </>

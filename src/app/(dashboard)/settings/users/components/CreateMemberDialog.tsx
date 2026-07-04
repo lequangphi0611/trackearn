@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import {
@@ -18,11 +18,13 @@ import { Button } from "@/components/ui/button";
 import { Field } from "@/components/forms/Field";
 import { SubmitButton } from "@/components/forms/SubmitButton";
 import { getFormError } from "@/lib/form";
+import type { ActionResult } from "@/lib/types";
 import { createMember } from "../actions";
 
 export function CreateMemberDialog() {
   const [open, setOpen] = useState(false);
-  const [state, formAction] = useActionState(createMember, null);
+  const [state, setState] = useState<ActionResult | null>(null);
+  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     if (state?.success) {
@@ -31,6 +33,16 @@ export function CreateMemberDialog() {
       setOpen(false);
     }
   }, [state]);
+
+  // Gọi Server Action thủ công — xem giải thích ở TransactionForm.tsx.
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    startTransition(async () => {
+      const result = await createMember(null, formData);
+      setState(result);
+    });
+  }
 
   const { fieldErrors, formError } = getFormError(state);
 
@@ -51,7 +63,7 @@ export function CreateMemberDialog() {
             Tài khoản member đăng nhập bằng email + mật khẩu ban đầu dưới đây.
           </DialogDescription>
         </DialogHeader>
-        <form action={formAction} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           {formError && (
             <Alert variant="destructive">
               <AlertDescription>{formError}</AlertDescription>
@@ -81,7 +93,7 @@ export function CreateMemberDialog() {
                 </Button>
               }
             />
-            <SubmitButton size="sm">Tạo tài khoản</SubmitButton>
+            <SubmitButton size="sm" pending={isPending}>Tạo tài khoản</SubmitButton>
           </DialogFooter>
         </form>
       </DialogContent>

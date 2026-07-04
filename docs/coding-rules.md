@@ -26,6 +26,8 @@ Bộ quy tắc cho toàn bộ codebase TrackEarn. **Đọc trước khi implemen
 
 **Tôi cần ghi DB** → Server Action trong `feature/actions.ts`, trả về `ActionResult<T>` → [server-actions.md](./rules/server-actions.md). Quy ước schema/nghiệp vụ (tiền, timezone, khóa, công nợ) → [data-model.md](./rules/data-model.md)
 
+**Form của tôi render trong Dialog/Portal** → KHÔNG dùng `useActionState` + `<form action>` (bug kẹt dialog ~30%) — gọi action thủ công qua `onSubmit` → [server-actions.md § Form trong Dialog/Portal](./rules/server-actions.md#form-trong-dialogportal--không-dùng-useactionstate--form-actiondispatch)
+
 **Tôi cần API route** → chỉ khi client fetch, webhook, hoặc file export → [data-fetching.md](./rules/data-fetching.md)
 
 **Tôi cần state** → URL state trước → `useState` → Zustand → [state.md](./rules/state.md)

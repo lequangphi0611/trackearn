@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ClipboardCheck } from "lucide-react";
@@ -19,6 +19,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Field } from "@/components/forms/Field";
 import { SubmitButton } from "@/components/forms/SubmitButton";
 import { getFormError } from "@/lib/form";
+import type { ActionResult } from "@/lib/types";
 import { adjustStock } from "../actions";
 
 export function AdjustStockDialog({
@@ -32,7 +33,8 @@ export function AdjustStockDialog({
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [state, formAction] = useActionState(adjustStock, null);
+  const [state, setState] = useState<ActionResult | null>(null);
+  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     if (state?.success) {
@@ -47,6 +49,16 @@ export function AdjustStockDialog({
 
   const { fieldErrors, formError } = getFormError(state);
 
+  // Gọi Server Action thủ công — xem giải thích ở RestockDialog.tsx.
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    startTransition(async () => {
+      const result = await adjustStock(null, formData);
+      setState(result);
+    });
+  }
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={<Button variant="outline" size="sm"><ClipboardCheck />Kiểm kê</Button>} />
@@ -57,7 +69,7 @@ export function AdjustStockDialog({
             Đặt lại tồn theo số đếm thực tế. Không sinh giao dịch chi (chỉ đính chính số đếm).
           </DialogDescription>
         </DialogHeader>
-        <form action={formAction} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <input type="hidden" name="id" value={id} />
           {formError && (
             <Alert variant="destructive">
@@ -77,7 +89,7 @@ export function AdjustStockDialog({
           />
           <DialogFooter>
             <DialogClose render={<Button type="button" variant="ghost" size="sm">Huỷ</Button>} />
-            <SubmitButton size="sm">Xác nhận</SubmitButton>
+            <SubmitButton size="sm" pending={isPending}>Xác nhận</SubmitButton>
           </DialogFooter>
         </form>
       </DialogContent>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -10,6 +10,7 @@ import { Field } from "@/components/forms/Field";
 import { SegmentedToggle } from "@/components/forms/SegmentedToggle";
 import { SubmitButton } from "@/components/forms/SubmitButton";
 import { getFormError } from "@/lib/form";
+import type { ActionResult } from "@/lib/types";
 import { createTransaction } from "../actions";
 
 type Category = { id: string; name: string };
@@ -38,25 +39,50 @@ export function TransactionForm({
   stickySubmit?: boolean;
 }) {
   const router = useRouter();
-  const [state, formAction] = useActionState(createTransaction, null);
+  const [state, setState] = useState<ActionResult<{ id: string }> | null>(null);
+  const [isPending, startTransition] = useTransition();
   const [type, setType] = useState<"income" | "expense">(lockType ?? "income");
   const [amount, setAmount] = useState("");
   const [payLater, setPayLater] = useState(false);
   const [paid, setPaid] = useState("");
 
+  // Ref giữ onSuccess mới nhất — effect chỉ phụ thuộc `state`. onSuccess là
+  // closure mới mỗi lần cha (vd QuickEntryDialog/DeviceTransactionForm) render
+  // lại (vd sau revalidatePath của createTransaction), nếu để thẳng vào deps
+  // thì effect refire dù state không đổi → toast "Đã lưu giao dịch" lặp lại
+  // nhiều lần (đã dùng cách này ở SellDeviceForm.tsx, áp dụng lại đây).
+  const onSuccessRef = useRef(onSuccess);
+  useEffect(() => {
+    onSuccessRef.current = onSuccess;
+  });
+
   useEffect(() => {
     if (state?.success) {
       toast.success("Đã lưu giao dịch");
-      if (onSuccess) onSuccess();
+      if (onSuccessRef.current) onSuccessRef.current();
       else router.push(`/transactions/${line}`);
     }
-  }, [state, router, line, onSuccess]);
+  }, [state, router, line]);
 
   const { fieldErrors, formError } = getFormError(state);
   const paidAmount = payLater ? paid : amount;
 
+  // Gọi Server Action thủ công (không dùng <form action={dispatch}> của
+  // useActionState) — trong Base UI Dialog (Portal), transition của form
+  // action đôi khi không bao giờ resolve `state` dù server đã xử lý xong
+  // (~30% số lần, xem tmp/TODO.md US-3). Gọi trực tiếp + tự set state tránh
+  // đúng cơ chế bị lỗi đó.
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    startTransition(async () => {
+      const result = await createTransaction(null, formData);
+      setState(result);
+    });
+  }
+
   return (
-    <form action={formAction} className="flex flex-col gap-4">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <input type="hidden" name="line" value={line} />
       <input type="hidden" name="type" value={type} />
       <input type="hidden" name="paidAmount" value={paidAmount} />
@@ -148,7 +174,7 @@ export function TransactionForm({
             : undefined
         }
       >
-        <SubmitButton size="lg" fullWidth>
+        <SubmitButton size="lg" fullWidth pending={isPending}>
           Lưu giao dịch
         </SubmitButton>
       </div>

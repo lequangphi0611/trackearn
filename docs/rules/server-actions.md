@@ -89,6 +89,34 @@ const [state, formAction] = useActionState(createTransaction, null);
 
 Component dùng chung: `<Field>`, `<SubmitButton>` (`src/components/forms/`), `getFormError` (`src/lib/form.ts`) — không reinvent.
 
+## Form trong Dialog/Portal — KHÔNG dùng `useActionState` + `<form action={dispatch}>`
+
+**Nếu form render bên trong Base UI `<Dialog>` (hoặc bất kỳ Portal nào)**, tuyệt đối không dùng `useActionState` + `<form action={dispatch}>`. Đã xác nhận bằng thực nghiệm (n=6/nhánh, container restart sạch, giãn cách 3s): pattern này có ~30% khả năng `state` không bao giờ resolve dù server xử lý và trả kết quả đúng 100% (network/DB không hề lỗi) — dialog kẹt spinner vĩnh viễn, không đóng, không toast. Nghi vấn cơ chế: transition của `useActionState` bị "lạc" khi cây component vừa nằm trong 1 subtree bị `createPortal` hoá vừa có phần ngoài portal cùng được Next re-render trong cùng request.
+
+Thay vào đó, gọi Server Action **thủ công** qua `onSubmit`:
+
+```tsx
+"use client";
+const [state, setState] = useState<ActionResult | null>(null);
+const [isPending, startTransition] = useTransition();
+
+function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  e.preventDefault();
+  const formData = new FormData(e.currentTarget);
+  startTransition(async () => {
+    const result = await myAction(null, formData);
+    setState(result);
+  });
+}
+
+// <form onSubmit={handleSubmit}> + <SubmitButton pending={isPending}>
+// (useFormStatus không tự biết pending khi không dùng <form action>,
+// SubmitButton nhận prop `pending` để override)
+```
+
+- Form **độc lập** (không render trong Dialog/Portal, vd trang `/xxx/new` riêng) vẫn dùng `useActionState` bình thường như mục trên — không cần đổi.
+- Xem ví dụ đã áp dụng: `RestockDialog.tsx`, `BanMemberDialog.tsx`, `TransactionForm.tsx`, `CreateMemberDialog.tsx` (`src/app/(dashboard)/...`).
+
 ## Khi nào KHÔNG dùng Server Action
 
 Dùng API route (`src/app/api/`) khi: client cần fetch (polling, search-as-you-type), export file (CSV/PDF), hoặc webhook bên ngoài.

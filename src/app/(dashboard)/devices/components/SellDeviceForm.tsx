@@ -1,10 +1,11 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Field } from "@/components/forms/Field";
 import { getFormError } from "@/lib/form";
+import type { ActionResult } from "@/lib/types";
 import { sellDevice } from "../actions";
 
 /**
@@ -20,9 +21,13 @@ export function SellDeviceForm({
   id: string;
   defaultDate: string;
   onSuccess: () => void;
-  footer: React.ReactNode;
+  /** Nhận `pending` để SubmitButton bên trong hiện đúng spinner (form tự gọi
+   * action qua onSubmit, không dùng <form action> nên useFormStatus không
+   * tự biết). */
+  footer: (pending: boolean) => React.ReactNode;
 }) {
-  const [state, formAction] = useActionState(sellDevice, null);
+  const [state, setState] = useState<ActionResult | null>(null);
+  const [isPending, startTransition] = useTransition();
   const [sellPrice, setSellPrice] = useState("");
   const [payLater, setPayLater] = useState(false);
   const [paid, setPaid] = useState("");
@@ -48,8 +53,18 @@ export function SellDeviceForm({
   const { fieldErrors, formError } = getFormError(state);
   const paidAmount = payLater ? paid : sellPrice;
 
+  // Gọi Server Action thủ công — xem giải thích ở TransactionForm.tsx.
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    startTransition(async () => {
+      const result = await sellDevice(null, formData);
+      setState(result);
+    });
+  }
+
   return (
-    <form action={formAction} className="flex flex-col gap-4">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <input type="hidden" name="id" value={id} />
       <input type="hidden" name="paidAmount" value={paidAmount} />
       {formError && (
@@ -105,7 +120,7 @@ export function SellDeviceForm({
           <Field label="Ngày hẹn trả" name="dueDate" type="date" />
         </>
       )}
-      {footer}
+      {footer(isPending)}
     </form>
   );
 }
