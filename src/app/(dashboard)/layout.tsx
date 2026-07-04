@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentSession } from "@/queries/session";
 import { Logo } from "@/components/brand/Logo";
-import { RegisterServiceWorker } from "@/components/RegisterServiceWorker";
 import { DashboardNav } from "./components/DashboardNav";
 import { UserMenu } from "./components/UserMenu";
 import { BottomNav } from "./components/BottomNav";
@@ -19,7 +18,6 @@ export default async function DashboardLayout({
 
   return (
     <div className="flex min-h-screen flex-col">
-      <RegisterServiceWorker />
       <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
         <div className="mx-auto flex h-14 w-full max-w-3xl items-center justify-between gap-2 px-4">
           <div className="flex items-center gap-4">

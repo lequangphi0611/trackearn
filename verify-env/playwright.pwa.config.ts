@@ -7,6 +7,11 @@ import { STORAGE_STATE } from "./lib/config";
 // thường. Port 3100 để né trackearn-app-1 (Docker) đang chiếm port 3000.
 const PWA_BASE_URL = "http://localhost:3100";
 
+// distDir riêng (khác ".next") — build production cho test này KHÔNG được
+// đụng ".next/" đang dùng bởi `pnpm dev` hay một build thường chạy song song
+// trên cùng máy (xem next.config.ts NEXT_DIST_DIR).
+const PWA_DIST_DIR = ".next-pwa-verify";
+
 export default defineConfig({
   testDir: ".",
   fullyParallel: false,
@@ -28,14 +33,18 @@ export default defineConfig({
   webServer: {
     // next.config.ts dùng output: "standalone" → "next start" KHÔNG chạy
     // đúng (thiếu asset), phải dùng server.js standalone giống Dockerfile,
-    // và tự copy public/ + .next/static vào .next/standalone/ trước (Docker
-    // làm việc này qua COPY, ngoài Docker phải làm thủ công).
+    // và tự copy public/ + <distDir>/static vào <distDir>/standalone/ trước
+    // (Docker làm việc này qua COPY, ngoài Docker phải làm thủ công).
+    // server.js standalone KHÔNG tự load .env.local như `next dev`/`next
+    // build` — dùng --env-file-if-exists để inject DATABASE_URL/
+    // BETTER_AUTH_SECRET/ADMIN_USER/ADMIN_PASS (không lỗi nếu file không có,
+    // vd CI đã set sẵn qua biến môi trường thật).
     command:
-      "pnpm build && node scripts/prepare-standalone.mjs && node .next/standalone/server.js",
+      "pnpm build && node scripts/prepare-standalone.mjs && node --env-file-if-exists=.env.local $NEXT_DIST_DIR/standalone/server.js",
     cwd: "..",
     url: `${PWA_BASE_URL}/api/health`,
     reuseExistingServer: false,
     timeout: 300_000,
-    env: { PORT: "3100" },
+    env: { PORT: "3100", NEXT_DIST_DIR: PWA_DIST_DIR },
   },
 });

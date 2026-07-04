@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import pwaIcons from "@/lib/pwa-icons.json";
 
 // background_color quy từ --background light (oklch(0.985 0.008 95)) —
 // xem globals.css. Manifest chỉ nhận 1 cặp màu tĩnh, không đổi theo dark mode.
@@ -11,25 +12,9 @@ export default function manifest(): MetadataRoute.Manifest {
     display: "standalone",
     theme_color: "#E0A020",
     background_color: "#fcfaf4",
-    icons: [
-      {
-        src: "/icons/icon-192.png",
-        sizes: "192x192",
-        type: "image/png",
-        purpose: "any",
-      },
-      {
-        src: "/icons/icon-512.png",
-        sizes: "512x512",
-        type: "image/png",
-        purpose: "any",
-      },
-      {
-        src: "/icons/icon-maskable-512.png",
-        sizes: "512x512",
-        type: "image/png",
-        purpose: "maskable",
-      },
-    ],
+    // Nguồn sự thật chung cho danh sách icon (src/lib/pwa-icons.json) — cùng
+    // dữ liệu này dùng bởi scripts/generate-pwa-icons.ts (sinh file PNG) và
+    // scripts/generate-sw.mjs (precache trong service worker).
+    icons: pwaIcons as MetadataRoute.Manifest["icons"],
   };
 }

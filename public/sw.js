@@ -4,13 +4,16 @@
 // - Điều hướng trang (navigation): network-only, lỗi mạng → trả /offline.
 // - _next/static/*: cache-first (asset hash theo build, an toàn để cache dài hạn).
 // - Còn lại (API, server actions, mọi request khác): network-only, không cache.
-const CACHE_NAME = "trackearn-shell-v1";
+//
+// CACHE_NAME và danh sách icon dưới đây là PLACEHOLDER — được
+// scripts/generate-sw.mjs stamp lại bằng giá trị thật (BUILD_ID của Next +
+// src/lib/pwa-icons.json) mỗi lần chạy `pnpm build`, để cache cũ tự bị bỏ
+// qua (tên khác) sau mỗi lần deploy thay vì tích luỹ vĩnh viễn.
+const CACHE_NAME = "trackearn-shell-dev";
 const PRECACHE_URLS = [
   "/offline",
   "/manifest.webmanifest",
-  "/icons/icon-192.png",
-  "/icons/icon-512.png",
-  "/icons/icon-maskable-512.png",
+  "__PWA_ICON_URLS__",
 ];
 
 self.addEventListener("install", (event) => {
@@ -54,8 +57,12 @@ self.addEventListener("fetch", (event) => {
         (cached) =>
           cached ||
           fetch(request).then((response) => {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+            // Chỉ cache response thành công — lỗi (404/5xx, hoặc opaque do
+            // redirect cross-origin) không được ghi đè/đầu độc cache.
+            if (response.ok) {
+              const clone = response.clone();
+              caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+            }
             return response;
           }),
       ),

@@ -1,13 +1,19 @@
 // Sinh icon PWA (192/512/maskable) từ src/app/icon.svg — chạy 1 lần
 // (`pnpm generate:pwa-icons`), commit PNG output vào public/icons/. Chạy lại
 // nếu đổi brand color/glyph trong icon.svg.
+// Tên file/kích thước đọc từ src/lib/pwa-icons.json (nguồn sự thật chung, xem
+// src/app/manifest.ts và scripts/generate-sw.mjs) — đổi 1 chỗ, cả 3 nơi theo.
 import { mkdirSync, readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { basename, resolve } from "node:path";
 import sharp from "sharp";
+import pwaIcons from "../src/lib/pwa-icons.json" with { type: "json" };
 
 const root = resolve(import.meta.dirname, "..");
 const outDir = resolve(root, "public/icons");
 mkdirSync(outDir, { recursive: true });
+
+const iconFile = (src: string) => resolve(outDir, basename(src));
+const sizeOf = (sizes: string) => Number(sizes.split("x")[0]);
 
 const svg = readFileSync(resolve(root, "src/app/icon.svg"), "utf-8");
 
@@ -23,18 +29,20 @@ const maskableSvg = `<svg width="512" height="512" viewBox="0 0 48 48" xmlns="ht
 </svg>`;
 
 async function main() {
+  const [icon192, icon512, iconMaskable512] = pwaIcons;
+
   await sharp(Buffer.from(svg))
-    .resize(192, 192)
+    .resize(sizeOf(icon192.sizes), sizeOf(icon192.sizes))
     .png()
-    .toFile(resolve(outDir, "icon-192.png"));
+    .toFile(iconFile(icon192.src));
   await sharp(Buffer.from(svg))
-    .resize(512, 512)
+    .resize(sizeOf(icon512.sizes), sizeOf(icon512.sizes))
     .png()
-    .toFile(resolve(outDir, "icon-512.png"));
+    .toFile(iconFile(icon512.src));
   await sharp(Buffer.from(maskableSvg))
-    .resize(512, 512)
+    .resize(sizeOf(iconMaskable512.sizes), sizeOf(iconMaskable512.sizes))
     .png()
-    .toFile(resolve(outDir, "icon-maskable-512.png"));
+    .toFile(iconFile(iconMaskable512.src));
 
   console.log("Đã sinh icon PWA vào public/icons/");
 }
