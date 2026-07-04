@@ -329,6 +329,21 @@ export async function getExpenseByCategory(
   };
 }
 
+/**
+ * Id thật (uuid) của danh mục `cost_of_goods` — dùng để dựng link drill-down
+ * sang /transactions (categoryId/excludeCategoryId, xem reports.md §4.5).
+ * Tách riêng khỏi getGrossProfitByLine (thay vì thêm field vào LineGrossProfit)
+ * theo khuyến nghị trong kế hoạch implement — ít đụng query hiện có hơn.
+ */
+export async function getCostOfGoodsCategoryId(): Promise<string | null> {
+  const [row] = await db
+    .select({ id: expenseCategories.id })
+    .from(expenseCategories)
+    .where(eq(expenseCategories.slug, "cost_of_goods"))
+    .limit(1);
+  return row?.id ?? null;
+}
+
 export type MonthlyTrendPoint = { month: string; revenue: number; profit: number };
 
 /**

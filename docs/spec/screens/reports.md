@@ -60,6 +60,35 @@ Cho mỗi `business_line` trong kỳ (công thức từ [reports.md](../reports.
 ### 4.4. Xu hướng nhiều tháng (line)
 - Biểu đồ **line**: doanh thu & lãi theo **tháng**, **12 tháng gần nhất** (độc lập với loại kỳ đang chọn) → thấy xu hướng.
 
+### 4.5. Drill-down sang giao dịch (click xem chi tiết)
+
+> **Mục tiêu**: người xem báo cáo bấm vào một con số → mở đúng danh sách giao dịch cấu thành số đó ở [`/transactions`](./transactions.md). **Bắt buộc khớp tuyệt đối** giữa số trên báo cáo và tổng số trên danh sách lọc ra — nếu một số liệu không thể đảm bảo khớp tuyệt đối (khác nguồn dữ liệu, khác mốc ngày), số đó **không được click**.
+
+**Ánh xạ kỳ → khoảng ngày**: `from`/`to` truyền sang `/transactions` lấy từ đúng **kỳ đang xem** trên báo cáo (không phải kỳ trước), tính theo cùng biên kỳ VN (`vnPeriodRange`) đã dùng để tính số liệu; `to` truyền dạng ngày cuối kỳ **inclusive** (cùng quy ước `/transactions/[line]` đang dùng).
+
+Số nào click được, số nào không, và điều hướng tới đâu:
+
+| Vị trí | Số liệu | Click? | Điều hướng |
+|--------|---------|--------|------------|
+| 4.1 Tổng quan | Doanh thu (tổng, cả kỳ) | ✅ | `/transactions?type=income&from=&to=` |
+| 4.1 Tổng quan | Chi phí (tổng, cả kỳ — gồm giá vốn + chi phí chung) | ✅ | `/transactions?type=expense&from=&to=` |
+| 4.1 Tổng quan | Lãi | ❌ | hiệu số Doanh thu − Chi phí, không phải tổng của 1 danh sách |
+| 4.1 Tổng quan | Thực thu (`paid_amount`) | ❌ | ngoài phạm vi — xem §8 Điểm chưa chốt |
+| 4.2 Lãi gộp mảng | Doanh thu (theo từng mảng) | ✅ | `/transactions/<mảng>?type=income&from=&to=` |
+| 4.2 Lãi gộp mảng | Chi phí mảng (đã loại giá vốn) | ✅ | `/transactions/<mảng>?type=expense&excludeCategoryId=<id "cost_of_goods">&from=&to=` |
+| 4.2 Lãi gộp mảng | Giá vốn — Xe múc | ❌ | phụ tùng xuất kho (`repair_job_parts`), **không phải** `transactions` — không có gì để click ra |
+| 4.2 Lãi gộp mảng | Giá vốn — Thiết bị | ❌ | tính theo `sell_date` của máy **bán trong kỳ**, KHÔNG theo `transacted_at` của giao dịch mua (máy có thể mua từ kỳ trước) → lọc `/transactions` theo khoảng ngày sẽ ra sai số |
+| 4.2 Lãi gộp mảng | Giá vốn — Phụ kiện | ✅ | `/transactions/phu-kien?type=expense&categoryId=<id "cost_of_goods">&from=&to=` |
+| 4.2 Lãi gộp mảng | Lãi gộp (theo mảng) | ❌ | tổng hợp nhiều thành phần khác nguồn, không map 1-1 với 1 danh sách |
+| 4.3 Chi phí danh mục | Từng cột danh mục (trong top 10) | ✅ | `/transactions?type=expense&categoryId=<id>&from=&to=` (xuyên mảng) |
+| 4.3 Chi phí danh mục | Cột "Còn lại (gộp)" | ❌ | gộp nhiều danh mục, không có 1 `categoryId` để lọc đúng |
+| 4.3 Chi phí danh mục | "Chi phí chung" (chỉ số phụ) | ✅ | `/transactions/chi-phi-chung?from=&to=` |
+| 4.4 Xu hướng | Điểm trên biểu đồ | ❌ | ngoài phạm vi — xem §8 Điểm chưa chốt |
+
+- **Ô không click được** vẫn hiển thị số bình thường (không phải link, không đổi màu/hover); có thể kèm ghi chú/tooltip ngắn giải thích lý do (vd "phụ tùng đã xuất — xem ở màn Phụ tùng", "tính theo ngày máy được bán, không theo ngày mua").
+- `categoryId` / `excludeCategoryId` nhận **id thật** (uuid) của danh mục `cost_of_goods`, do server component báo cáo tự tra cứu khi dựng link — không phải slug gõ tay.
+- Xem cập nhật bộ lọc tương ứng ở [screens/transactions.md](./transactions.md) §3.2 và §9 (view tổng hợp nhiều mảng).
+
 ---
 
 ## 5. Trực quan hóa (chart)
@@ -93,6 +122,9 @@ Server Component fetch qua Drizzle (`src/queries/`):
 - [ ] Chi phí theo danh mục sắp xếp giảm dần + mục "Chi phí chung" riêng.
 - [ ] Biểu đồ xu hướng 12 tháng (doanh thu & lãi).
 - [ ] Mốc thời gian theo `Asia/Ho_Chi_Minh`.
+- [ ] Các ô có ✅ ở bảng §4.5 là link; bấm vào mở đúng `/transactions` (hoặc `/transactions/<mảng>`) với `type`/`from`/`to`/`categoryId`/`excludeCategoryId` tương ứng.
+- [ ] Tổng số tiền trên danh sách giao dịch lọc ra **khớp tuyệt đối** với số đã click trên báo cáo (cùng khoảng ngày, cùng loại, cùng danh mục nếu có).
+- [ ] Các ô có ❌ ở bảng §4.5 (Lãi, Thực thu, Giá vốn xe múc/thiết bị, cột "Còn lại", điểm xu hướng) hiển thị bình thường, không phải link.
 
 ---
 
@@ -101,3 +133,5 @@ Server Component fetch qua Drizzle (`src/queries/`):
 1. **Xuất báo cáo** (PDF/CSV) để in/gửi → để mở, ngoài MVP.
 2. **Phân bổ chi phí chung vào mảng** (theo tỉ lệ doanh thu) cho lãi mảng "sạch" hơn → hiện **không** (đã chốt ở expenses); xem lại nếu cần.
 3. **Lọc xu hướng theo mảng** (line riêng từng mảng) → để mở; hiện xu hướng tổng.
+4. **Drill-down "Thực thu"** (`paid_amount`) và **điểm trên biểu đồ xu hướng** → để mở, ngoài phạm vi lần này (xem §4.5).
+5. **Drill-down "Giá vốn" xe múc/thiết bị** → hiện không click được vì khác nguồn dữ liệu/mốc ngày (xem §4.5). Muốn xem chi tiết, cân nhắc thêm sau: filter theo `sell_date` ở màn Kho thiết bị, hoặc màn xem phụ tùng đã xuất theo kỳ cho xe múc — cả hai đều ngoài phạm vi lần này.

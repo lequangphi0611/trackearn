@@ -4,6 +4,8 @@ import { formatCurrency, formatDate, formatTime, shortCategoryName } from "@/lib
 import { vnDateOnly } from "@/lib/date";
 import { Money } from "@/components/Money";
 import { Badge } from "@/components/ui/badge";
+import { BUSINESS_LINE_STYLES, businessLineLabel, type BusinessLine } from "@/lib/constants";
+import { getLineByBusinessLine } from "@/lib/transaction-lines";
 import type { getTransactions } from "@/queries/transactions";
 import { StatusBadge } from "./StatusBadge";
 
@@ -28,19 +30,27 @@ function sumByType(rows: IndexedItem[], type: string) {
 
 export function TransactionList({
   items,
-  line,
+  aggregate = false,
   highlightFrom,
 }: {
   items: TransactionItem[];
-  line: string;
+  // true ở view tổng hợp "/transactions" — mỗi dòng có thể thuộc mảng khác
+  // nhau, cần badge "Mảng" + link chi tiết tính theo từng dòng.
+  aggregate?: boolean;
   // Dòng có chỉ số >= mốc này là vừa tải thêm → cho hiệu ứng "dòng mới".
   highlightFrom?: number;
 }) {
   if (items.length === 0) {
     return (
       <p className="py-12 text-center text-sm text-muted-foreground">
-        Chưa có giao dịch nào. Bấm <span className="font-medium text-foreground">Nhập</span> để
-        thêm dòng đầu tiên.
+        {aggregate ? (
+          "Chưa có giao dịch nào trong khoảng lọc này."
+        ) : (
+          <>
+            Chưa có giao dịch nào. Bấm{" "}
+            <span className="font-medium text-foreground">Nhập</span> để thêm dòng đầu tiên.
+          </>
+        )}
       </p>
     );
   }
@@ -64,7 +74,10 @@ export function TransactionList({
               </span>
             </div>
             <ul className="overflow-hidden rounded-lg border border-border">
-              {g.rows.map(({ t, index }, idx) => (
+              {g.rows.map(({ t, index }, idx) => {
+                const line =
+                  getLineByBusinessLine(t.businessLine)?.slug ?? getLineByBusinessLine(null)!.slug;
+                return (
                 <li key={t.id}>
                   <Link
                     href={`/transactions/${line}/${t.id}`}
@@ -83,6 +96,18 @@ export function TransactionList({
                             (t.categoryName && shortCategoryName(t.categoryName)) ||
                             "Giao dịch"}
                         </span>
+                        {aggregate && (
+                          <Badge
+                            className={
+                              t.businessLine
+                                ? BUSINESS_LINE_STYLES[t.businessLine as BusinessLine]
+                                : undefined
+                            }
+                            variant={t.businessLine ? undefined : "muted"}
+                          >
+                            {businessLineLabel(t.businessLine)}
+                          </Badge>
+                        )}
                         {t.sourceKind !== "manual" && <Badge variant="muted">Tự sinh</Badge>}
                       </div>
                       <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
@@ -112,7 +137,8 @@ export function TransactionList({
                     </div>
                   </Link>
                 </li>
-              ))}
+                );
+              })}
             </ul>
           </section>
         );

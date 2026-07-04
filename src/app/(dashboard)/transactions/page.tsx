@@ -1,21 +1,45 @@
-import Link from "next/link";
-import { TRANSACTION_LINES } from "@/lib/transaction-lines";
+import { Suspense } from "react";
+import { TransactionFilters as Filters } from "./components/TransactionFilters";
+import { TransactionResults } from "./components/TransactionResults";
+import { TransactionListSkeleton } from "./components/TransactionListSkeleton";
+import { TransactionLineTabs } from "./components/TransactionLineTabs";
+import { parseTransactionListParams, type TransactionListSearchParams } from "./list-params";
 
-export default function TransactionsIndexPage() {
+// View tổng hợp — không lọc business_line (kể cả NULL/chi phí chung), thay
+// thế menu tĩnh cũ (xem transactions.md §2). Không có nút "Nhập": phải vào
+// đúng 1 mảng để gán business_line_id (transactions.md §2).
+export default async function TransactionsIndexPage({
+  searchParams,
+}: {
+  searchParams: Promise<TransactionListSearchParams>;
+}) {
+  const sp = await searchParams;
+  const { query, moreParams, filterKey, fromStr, toStr } = parseTransactionListParams(
+    sp,
+    undefined,
+  );
+
   return (
     <div className="flex flex-col gap-4">
       <h1 className="text-lg font-semibold">Giao dịch</h1>
-      <div className="grid gap-2 sm:grid-cols-2">
-        {TRANSACTION_LINES.map((l) => (
-          <Link
-            key={l.slug}
-            href={`/transactions/${l.slug}`}
-            className="rounded-lg border border-border p-4 text-sm font-medium transition-colors hover:bg-muted/50"
-          >
-            {l.label}
-          </Link>
-        ))}
-      </div>
+
+      <TransactionLineTabs active={null} searchParams={sp} />
+
+      <Filters
+        params={{
+          q: sp.q,
+          type: sp.type,
+          status: sp.status,
+          from: fromStr,
+          to: toStr,
+          categoryId: sp.categoryId,
+          excludeCategoryId: sp.excludeCategoryId,
+        }}
+      />
+
+      <Suspense key={filterKey} fallback={<TransactionListSkeleton />}>
+        <TransactionResults query={query} moreHref={`/transactions?${moreParams}`} aggregate />
+      </Suspense>
     </div>
   );
 }

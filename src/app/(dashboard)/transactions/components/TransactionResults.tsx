@@ -9,13 +9,14 @@ import { TransactionList } from "./TransactionList";
 // Phần phụ thuộc DB (chậm) tách riêng để stream trong <Suspense>: phần khung
 // trang (tiêu đề, bộ lọc) hiện ngay, danh sách hiện skeleton rồi mới tới.
 export async function TransactionResults({
-  line,
   query,
   moreHref,
+  aggregate = false,
 }: {
-  line: string;
   query: TransactionFilters;
   moreHref: string;
+  // true ở view tổng hợp "/transactions" — xem TransactionList.
+  aggregate?: boolean;
 }) {
   const { items, hasMore } = await getTransactions(query);
   // Chỉ tô sáng "dòng mới" khi tải thêm (page > 0), không phải lần đầu.
@@ -23,7 +24,7 @@ export async function TransactionResults({
 
   return (
     <div className="flex animate-in flex-col gap-4 fade-in-0 duration-300">
-      <TransactionList items={items} line={line} highlightFrom={highlightFrom} />
+      <TransactionList items={items} aggregate={aggregate} highlightFrom={highlightFrom} />
       {hasMore && <LoadMore href={moreHref} />}
     </div>
   );
