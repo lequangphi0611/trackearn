@@ -51,17 +51,17 @@ function TabLink({ tab, active }: { tab: Tab; active: boolean }) {
       href={tab.href}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "flex flex-1 flex-col items-center justify-center gap-1 py-2 text-[11px] font-medium transition-colors",
+        "flex flex-1 flex-col items-center justify-center gap-1 py-2 text-[11px] font-medium transition-colors active:bg-muted active:text-foreground",
         active
           ? "text-foreground"
           : "text-muted-foreground hover:text-foreground",
       )}
     >
       <Icon
-        className={cn("size-5", active && "text-brand")}
+        className={cn("size-5 transition-colors", active && "text-brand")}
         strokeWidth={active ? 2.4 : 2}
       />
-      <span className="leading-none">{tab.label}</span>
+      <span className="leading-none max-w-full truncate">{tab.label}</span>
     </Link>
   );
 }

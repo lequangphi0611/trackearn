@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Be_Vietnam_Pro, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
@@ -19,6 +19,10 @@ const mono = Geist_Mono({
 export const metadata: Metadata = {
   title: "TrackEarn",
   description: "Sổ thu chi cho hộ kinh doanh",
+};
+
+export const viewport: Viewport = {
+  viewportFit: "cover",
 };
 
 // Chạy TRƯỚC hydration để không chớp sáng/tối sai theme (FOUC).

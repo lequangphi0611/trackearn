@@ -166,6 +166,19 @@
   animation: row-enter 1.1s ease-out;
 }
 
+/* Gợi ý có thể cuộn ngang (tab mảng giao dịch, bảng lãi gộp) — chỉ mobile,
+   nơi nội dung dễ tràn khỏi màn hình hẹp; desktop vừa khung nên không cần. */
+.scroll-fade-x {
+  -webkit-mask-image: linear-gradient(to right, black calc(100% - 20px), transparent);
+  mask-image: linear-gradient(to right, black calc(100% - 20px), transparent);
+}
+@media (min-width: 640px) {
+  .scroll-fade-x {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+}
+
 /* Nền giấy kẻ dòng (màn auth) — như trang sổ, rất mờ để đọc là "giấy" chứ không phải trang trí. */
 .ledger-paper {
   background-image: repeating-linear-gradient(
