@@ -47,6 +47,7 @@ next-env.d.ts
 tmp
 
 # playwright verify-env (redundant với verify-env/.gitignore, an toàn hơn)
+test-results
 /verify-env/node_modules
 /verify-env/verify.config.json
 /verify-env/.auth/storageState.json
