@@ -5,17 +5,23 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Field } from "@/components/forms/Field";
+import { InputMoney } from "@/components/forms/InputMoney";
 import { SubmitButton } from "@/components/forms/SubmitButton";
+import { Label } from "@/components/ui/label";
 import { getFormError } from "@/lib/form";
 import { formatCurrency } from "@/lib/format";
 import { updateRepairJob } from "../actions";
 import { JobLinesEditor, type LineDraft, type PickerPart } from "./JobLinesEditor";
 
 function partsTotal(lines: LineDraft[]): number {
-  return lines.reduce((s, l) => s + Math.round(Number(l.quantity || 0) * Number(l.unitPrice || 0)), 0);
+  return lines.reduce((s, l) => s + Math.round(Number(l.quantity || 0) * (l.unitPrice ?? 0)), 0);
 }
+// `unitPrice` để trống → JSON.stringify bỏ key `undefined`, server (Zod bắt
+// buộc `unitPrice`) sẽ reject — mặc định về 0 khi serialize, giữ hành vi cũ.
 function cleanLines(lines: LineDraft[]) {
-  return lines.filter((l) => l.sparePartId && Number(l.quantity) > 0);
+  return lines
+    .filter((l) => l.sparePartId && Number(l.quantity) > 0)
+    .map((l) => ({ ...l, unitPrice: l.unitPrice ?? 0 }));
 }
 
 export function EditJobForm({
@@ -38,7 +44,7 @@ export function EditJobForm({
   const router = useRouter();
   const [state, formAction] = useActionState(updateRepairJob, null);
   const [lines, setLines] = useState<LineDraft[]>(initialLines);
-  const [laborFee, setLaborFee] = useState(String(initialLabor));
+  const [laborFee, setLaborFee] = useState<number | undefined>(initialLabor);
 
   useEffect(() => {
     if (state?.success) {
@@ -50,7 +56,7 @@ export function EditJobForm({
     }
   }, [state, router, id]);
 
-  const total = useMemo(() => partsTotal(lines) + Number(laborFee || 0), [lines, laborFee]);
+  const total = useMemo(() => partsTotal(lines) + (laborFee ?? 0), [lines, laborFee]);
   const { fieldErrors, formError } = getFormError(state);
 
   return (
@@ -69,16 +75,11 @@ export function EditJobForm({
 
       <JobLinesEditor parts={parts} value={lines} onChange={setLines} />
 
-      <Field
-        label="Tiền công (₫)"
-        name="laborFee"
-        type="number"
-        inputMode="numeric"
-        min="0"
-        value={laborFee}
-        onChange={(e) => setLaborFee(e.target.value)}
-        error={fieldErrors?.laborFee?.[0]}
-      />
+      <Label className="flex flex-col items-start gap-1.5">
+        Tiền công (₫)
+        <InputMoney value={laborFee} onChange={setLaborFee} name="laborFee" />
+      </Label>
+      {fieldErrors?.laborFee?.[0] && <p className="text-xs text-destructive">{fieldErrors.laborFee[0]}</p>}
 
       <div className="flex items-center justify-between rounded-lg bg-muted/40 px-3 py-2 text-sm">
         <span className="text-muted-foreground">Tổng tiền</span>

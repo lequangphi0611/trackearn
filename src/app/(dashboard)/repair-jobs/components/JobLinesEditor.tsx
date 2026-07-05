@@ -3,7 +3,9 @@
 import { Trash2, Plus, AlertTriangle } from "lucide-react";
 import { Select } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { InputMoney } from "@/components/forms/InputMoney";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { formatQuantity } from "@/lib/format";
 
 export type PickerPart = {
@@ -14,9 +16,9 @@ export type PickerPart = {
   buyPrice: number;
 };
 
-export type LineDraft = { sparePartId: string; quantity: string; unitPrice: string };
+export type LineDraft = { sparePartId: string; quantity: string; unitPrice: number | undefined };
 
-export const emptyLine: LineDraft = { sparePartId: "", quantity: "", unitPrice: "" };
+export const emptyLine: LineDraft = { sparePartId: "", quantity: "", unitPrice: undefined };
 
 export function JobLinesEditor({
   parts,
@@ -35,7 +37,7 @@ export function JobLinesEditor({
   function pickPart(i: number, sparePartId: string) {
     const part = byId.get(sparePartId);
     // Tự điền giá bán = giá vốn hiện tại nếu chưa nhập.
-    const unitPrice = value[i].unitPrice || (part ? String(part.buyPrice) : "");
+    const unitPrice = value[i].unitPrice ?? (part ? part.buyPrice : undefined);
     update(i, { sparePartId, unitPrice });
   }
 
@@ -86,16 +88,14 @@ export function JobLinesEditor({
                 onChange={(e) => update(i, { quantity: e.target.value })}
                 className="w-1/2"
               />
-              <Input
-                aria-label="Giá bán"
-                type="number"
-                inputMode="numeric"
-                min="0"
-                placeholder="Giá bán ₫"
-                value={line.unitPrice}
-                onChange={(e) => update(i, { unitPrice: e.target.value })}
-                className="w-1/2"
-              />
+              <Label className="w-1/2">
+                <span className="sr-only">Giá bán</span>
+                <InputMoney
+                  value={line.unitPrice}
+                  onChange={(v) => update(i, { unitPrice: v })}
+                  placeholder="Giá bán"
+                />
+              </Label>
             </div>
             {overStock && (
               <p className="mt-1.5 flex items-center gap-1 text-xs text-expense">

@@ -1,17 +1,20 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Field } from "@/components/forms/Field";
+import { InputMoney } from "@/components/forms/InputMoney";
 import { SubmitButton } from "@/components/forms/SubmitButton";
+import { Label } from "@/components/ui/label";
 import { getFormError } from "@/lib/form";
 import { createOrRestockSparePart } from "../actions";
 
 export function SparePartForm() {
   const router = useRouter();
   const [state, formAction] = useActionState(createOrRestockSparePart, null);
+  const [buyPrice, setBuyPrice] = useState<number | undefined>(undefined);
 
   useEffect(() => {
     if (state?.success) {
@@ -41,15 +44,11 @@ export function SparePartForm() {
         required
         error={fieldErrors?.quantity?.[0]}
       />
-      <Field
-        label="Giá nhập / đơn vị (₫)"
-        name="buyPrice"
-        type="number"
-        inputMode="numeric"
-        min="0"
-        required
-        error={fieldErrors?.buyPrice?.[0]}
-      />
+      <Label className="flex flex-col items-start gap-1.5">
+        Giá nhập / đơn vị (₫)
+        <InputMoney value={buyPrice} onChange={setBuyPrice} name="buyPrice" required />
+      </Label>
+      {fieldErrors?.buyPrice?.[0] && <p className="text-xs text-destructive">{fieldErrors.buyPrice[0]}</p>}
       <Field
         label="Ngưỡng cảnh báo tồn thấp"
         name="minQuantity"

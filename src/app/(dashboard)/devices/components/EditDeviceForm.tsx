@@ -5,8 +5,10 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Field } from "@/components/forms/Field";
+import { InputMoney } from "@/components/forms/InputMoney";
 import { SubmitButton } from "@/components/forms/SubmitButton";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -42,7 +44,7 @@ export function EditDeviceForm({
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const [state, formAction] = useActionState(updateDevice, null);
-  const [buyPrice, setBuyPrice] = useState(String(initialBuyPrice));
+  const [buyPrice, setBuyPrice] = useState<number | undefined>(initialBuyPrice);
   const [confirmed, setConfirmed] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
@@ -57,7 +59,7 @@ export function EditDeviceForm({
 
   const { fieldErrors, formError } = getFormError(state);
   // Hạ giá mua xuống dưới số đã trả (mua trả sau) → cần xác nhận như giao dịch.
-  const needsConfirm = !sold && buyDebtPaid !== null && Number(buyPrice) < buyDebtPaid;
+  const needsConfirm = !sold && buyDebtPaid !== null && (buyPrice ?? 0) < buyDebtPaid;
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     if (needsConfirm && !confirmed) {
@@ -93,16 +95,13 @@ export function EditDeviceForm({
         {/* Máy đã bán: chỉ sửa tên + tình trạng (server cũng chặn). */}
         {!sold && (
           <>
-            <Field
-              label="Giá mua (₫)"
-              name="buyPrice"
-              type="number"
-              inputMode="numeric"
-              min="0"
-              value={buyPrice}
-              onChange={(e) => setBuyPrice(e.target.value)}
-              error={fieldErrors?.buyPrice?.[0]}
-            />
+            <Label className="flex flex-col items-start gap-1.5">
+              Giá mua (₫)
+              <InputMoney value={buyPrice} onChange={setBuyPrice} name="buyPrice" />
+            </Label>
+            {fieldErrors?.buyPrice?.[0] && (
+              <p className="text-xs text-destructive">{fieldErrors.buyPrice[0]}</p>
+            )}
             <Field label="Ngày mua" name="buyDate" type="date" defaultValue={buyDate ?? ""} />
             <Field label="Nguồn mua" name="buyFrom" defaultValue={buyFrom ?? ""} />
           </>

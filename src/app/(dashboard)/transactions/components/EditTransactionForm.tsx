@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Field } from "@/components/forms/Field";
+import { InputMoney } from "@/components/forms/InputMoney";
 import { SubmitButton } from "@/components/forms/SubmitButton";
 import { Button } from "@/components/ui/button";
 import {
@@ -55,7 +56,7 @@ export function EditTransactionForm({
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const [state, formAction] = useActionState(updateTransaction, null);
-  const [amount, setAmount] = useState(String(initialAmount));
+  const [amount, setAmount] = useState<number | undefined>(initialAmount);
   const [confirmed, setConfirmed] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
@@ -70,7 +71,7 @@ export function EditTransactionForm({
   }, [state, router, line]);
 
   const { fieldErrors, formError } = getFormError(state);
-  const needsConfirm = debt !== null && Number(amount) < debt.paid;
+  const needsConfirm = debt !== null && (amount ?? 0) < debt.paid;
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     if (needsConfirm && !confirmed) {
@@ -97,17 +98,11 @@ export function EditTransactionForm({
           </Alert>
         )}
 
-        <Field
-          label="Số tiền (₫)"
-          name="amount"
-          type="number"
-          inputMode="numeric"
-          min="0"
-          required
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          error={fieldErrors?.amount?.[0]}
-        />
+        <Label className="flex flex-col items-start gap-1.5">
+          Số tiền (₫)
+          <InputMoney value={amount} onChange={setAmount} name="amount" required />
+        </Label>
+        {fieldErrors?.amount?.[0] && <p className="text-xs text-destructive">{fieldErrors.amount[0]}</p>}
 
         {type === "expense" && (
           <div className="flex flex-col gap-1.5">
