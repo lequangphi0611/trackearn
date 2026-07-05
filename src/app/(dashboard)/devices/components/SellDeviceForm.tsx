@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Field } from "@/components/forms/Field";
+import { MoneyField } from "@/components/forms/MoneyField";
 import { getFormError } from "@/lib/form";
 import type { ActionResult } from "@/lib/types";
 import { sellDevice } from "../actions";
@@ -28,9 +29,9 @@ export function SellDeviceForm({
 }) {
   const [state, setState] = useState<ActionResult | null>(null);
   const [isPending, startTransition] = useTransition();
-  const [sellPrice, setSellPrice] = useState("");
+  const [sellPrice, setSellPrice] = useState<number | undefined>(undefined);
   const [payLater, setPayLater] = useState(false);
-  const [paid, setPaid] = useState("");
+  const [paid, setPaid] = useState<number | undefined>(undefined);
 
   // Ref giữ onSuccess mới nhất — effect bán máy chỉ cần phụ thuộc `state`,
   // tránh gọi closure cũ nếu caller truyền onSuccess khác nhau giữa các lần
@@ -66,21 +67,19 @@ export function SellDeviceForm({
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <input type="hidden" name="id" value={id} />
-      <input type="hidden" name="paidAmount" value={paidAmount} />
+      <input type="hidden" name="paidAmount" value={paidAmount ?? ""} />
       {formError && (
         <Alert variant="destructive">
           <AlertDescription>{formError}</AlertDescription>
         </Alert>
       )}
-      <Field
+      <MoneyField
         label="Giá bán (₫)"
         name="sellPrice"
-        type="number"
-        inputMode="numeric"
-        min="1"
-        required
         value={sellPrice}
-        onChange={(e) => setSellPrice(e.target.value)}
+        onChange={setSellPrice}
+        min={1}
+        required
         error={fieldErrors?.sellPrice?.[0]}
       />
       <Field
@@ -102,14 +101,10 @@ export function SellDeviceForm({
       </label>
       {payLater && (
         <>
-          <Field
+          <MoneyField
             label="Đã thu (₫)"
-            name="paidVisible"
-            type="number"
-            inputMode="numeric"
-            min="0"
             value={paid}
-            onChange={(e) => setPaid(e.target.value)}
+            onChange={setPaid}
             error={fieldErrors?.paidAmount?.[0]}
           />
           <Field

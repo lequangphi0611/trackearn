@@ -5,27 +5,20 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Field } from "@/components/forms/Field";
+import { MoneyField } from "@/components/forms/MoneyField";
 import { SubmitButton } from "@/components/forms/SubmitButton";
 import { getFormError } from "@/lib/form";
 import { formatCurrency } from "@/lib/format";
 import { createRepairJob } from "../actions";
-import { JobLinesEditor, emptyLine, type LineDraft, type PickerPart } from "./JobLinesEditor";
-
-function partsTotal(lines: LineDraft[]): number {
-  return lines.reduce((s, l) => s + Math.round(Number(l.quantity || 0) * Number(l.unitPrice || 0)), 0);
-}
-
-function cleanLines(lines: LineDraft[]) {
-  return lines.filter((l) => l.sparePartId && Number(l.quantity) > 0);
-}
+import { JobLinesEditor, emptyLine, partsTotal, cleanLines, type LineDraft, type PickerPart } from "./JobLinesEditor";
 
 export function CreateJobForm({ parts, defaultDate }: { parts: PickerPart[]; defaultDate: string }) {
   const router = useRouter();
   const [state, formAction] = useActionState(createRepairJob, null);
   const [lines, setLines] = useState<LineDraft[]>([{ ...emptyLine }]);
-  const [laborFee, setLaborFee] = useState("");
+  const [laborFee, setLaborFee] = useState<number | undefined>(undefined);
   const [payLater, setPayLater] = useState(false);
-  const [paid, setPaid] = useState("");
+  const [paid, setPaid] = useState<number | undefined>(undefined);
 
   useEffect(() => {
     if (state?.success) {
@@ -36,14 +29,14 @@ export function CreateJobForm({ parts, defaultDate }: { parts: PickerPart[]; def
     }
   }, [state, router]);
 
-  const total = useMemo(() => partsTotal(lines) + Number(laborFee || 0), [lines, laborFee]);
+  const total = useMemo(() => partsTotal(lines) + (laborFee ?? 0), [lines, laborFee]);
   const { fieldErrors, formError } = getFormError(state);
-  const paidAmount = payLater ? paid : String(total);
+  const paidAmount = payLater ? paid : total;
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
       <input type="hidden" name="lines" value={JSON.stringify(cleanLines(lines))} />
-      <input type="hidden" name="paidAmount" value={paidAmount} />
+      <input type="hidden" name="paidAmount" value={paidAmount ?? ""} />
 
       {formError && (
         <Alert variant="destructive">
@@ -63,14 +56,11 @@ export function CreateJobForm({ parts, defaultDate }: { parts: PickerPart[]; def
 
       <JobLinesEditor parts={parts} value={lines} onChange={setLines} />
 
-      <Field
+      <MoneyField
         label="Tiền công (₫)"
         name="laborFee"
-        type="number"
-        inputMode="numeric"
-        min="0"
         value={laborFee}
-        onChange={(e) => setLaborFee(e.target.value)}
+        onChange={setLaborFee}
         error={fieldErrors?.laborFee?.[0]}
       />
 
@@ -91,14 +81,10 @@ export function CreateJobForm({ parts, defaultDate }: { parts: PickerPart[]; def
 
       {payLater && (
         <>
-          <Field
+          <MoneyField
             label="Đã thu (₫)"
-            name="paidVisible"
-            type="number"
-            inputMode="numeric"
-            min="0"
             value={paid}
-            onChange={(e) => setPaid(e.target.value)}
+            onChange={setPaid}
             error={fieldErrors?.paidAmount?.[0]}
           />
           <Field label="Tên người nợ" name="counterpartyName" error={fieldErrors?.counterpartyName?.[0]} />

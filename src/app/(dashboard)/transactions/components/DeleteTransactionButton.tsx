@@ -1,19 +1,35 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/forms/SubmitButton";
+import type { ActionResult } from "@/lib/types";
 import { deleteTransaction } from "../actions";
 
 export function DeleteTransactionButton({ id, line }: { id: string; line: string }) {
   const router = useRouter();
-  const [state, formAction] = useActionState(deleteTransaction, null);
+  const [open, setOpen] = useState(false);
+  const [state, setState] = useState<ActionResult | null>(null);
+  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     if (state?.success) {
       toast.success("Đã xoá giao dịch");
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setOpen(false);
       router.push(`/transactions/${line}`);
       router.refresh();
     } else if (state && !state.success) {
@@ -21,18 +37,41 @@ export function DeleteTransactionButton({ id, line }: { id: string; line: string
     }
   }, [state, router, line]);
 
+  // Gọi Server Action thủ công — xem giải thích ở RestockDialog.tsx.
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    startTransition(async () => {
+      const result = await deleteTransaction(null, formData);
+      setState(result);
+    });
+  }
+
   return (
-    <form
-      action={formAction}
-      onSubmit={(e) => {
-        if (!confirm("Xoá giao dịch này?")) e.preventDefault();
-      }}
-    >
-      <input type="hidden" name="id" value={id} />
-      <Button type="submit" variant="destructive" size="sm">
-        <Trash2 />
-        Xoá
-      </Button>
-    </form>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger
+        render={
+          <Button variant="destructive" size="sm">
+            <Trash2 />
+            Xoá
+          </Button>
+        }
+      />
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Xoá giao dịch này?</DialogTitle>
+          <DialogDescription>Không thể hoàn tác.</DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit}>
+          <input type="hidden" name="id" value={id} />
+          <DialogFooter>
+            <DialogClose render={<Button type="button" variant="ghost" size="sm">Huỷ</Button>} />
+            <SubmitButton size="sm" variant="destructive" pending={isPending}>
+              Xoá
+            </SubmitButton>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

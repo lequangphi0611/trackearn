@@ -17,6 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Field } from "@/components/forms/Field";
+import { MoneyField } from "@/components/forms/MoneyField";
 import { SubmitButton } from "@/components/forms/SubmitButton";
 import { getFormError } from "@/lib/form";
 import { formatCurrency } from "@/lib/format";
@@ -36,6 +37,7 @@ export function RestockDialog({
   const [open, setOpen] = useState(false);
   const [state, setState] = useState<ActionResult | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [newBuyPrice, setNewBuyPrice] = useState<number | undefined>(undefined);
 
   useEffect(() => {
     if (state?.success) {
@@ -89,12 +91,12 @@ export function RestockDialog({
             required
             error={fieldErrors?.quantity?.[0]}
           />
-          <Field
+          <MoneyField
             label="Giá nhập / đơn vị (₫)"
             name="buyPrice"
-            type="number"
-            inputMode="numeric"
-            min="1"
+            value={newBuyPrice}
+            onChange={setNewBuyPrice}
+            min={1}
             required
             error={fieldErrors?.buyPrice?.[0]}
           />

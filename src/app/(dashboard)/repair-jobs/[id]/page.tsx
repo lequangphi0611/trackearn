@@ -23,7 +23,7 @@ export default async function RepairJobDetailPage({
   const initialLines: LineDraft[] = parts.map((p) => ({
     sparePartId: p.sparePartId,
     quantity: p.quantity,
-    unitPrice: String(p.unitPrice),
+    unitPrice: p.unitPrice,
   }));
 
   return (
