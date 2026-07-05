@@ -19,17 +19,13 @@ import {
 } from "@/components/ui/combobox";
 import { SellDeviceForm } from "../../devices/components/SellDeviceForm";
 import { TransactionForm } from "./TransactionForm";
+import { MODES, type DeviceTransactionMode } from "./device-transaction-modes";
 
 type Category = { id: string; name: string };
 type DeviceOption = { id: string; name: string; conditionNote: string | null };
 type ComboItem = { value: string; label: string };
 
-const MODES = [
-  { key: "sell", label: "Bán máy trong kho" },
-  { key: "income", label: "Thu khác (sửa chữa, phụ kiện...)" },
-  { key: "expense", label: "Chi phí" },
-] as const;
-export type DeviceTransactionMode = (typeof MODES)[number]["key"];
+export type { DeviceTransactionMode };
 type Mode = DeviceTransactionMode;
 
 /**

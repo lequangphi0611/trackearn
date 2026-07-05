@@ -3,10 +3,15 @@ import { PackagePlus, HandCoins, Receipt } from "lucide-react";
 import type { DeviceFilters, DeviceStatusFilter } from "@/queries/devices";
 import { getStockCapital } from "@/queries/devices";
 import { formatCurrency } from "@/lib/format";
+import { getTransactionLine } from "@/lib/transaction-lines";
 import { HubCard } from "../components/HubCard";
 import { DeviceFilters as Filters } from "./components/DeviceFilters";
 import { DeviceResults } from "./components/DeviceResults";
 import { DeviceListSkeleton } from "./components/DeviceListSkeleton";
+
+// "thiet-bi" là slug của mảng Thiết bị điện tử (src/lib/transaction-lines.ts)
+// — đọc qua getTransactionLine thay vì hardcode chuỗi trong 2 href dưới.
+const deviceLine = getTransactionLine("thiet-bi")!;
 
 type SearchParams = {
   status?: string;
@@ -61,14 +66,14 @@ export default async function DevicesPage({
           Mua máy, lưu vào kho
         </HubCard>
         <HubCard
-          href="/transactions/thiet-bi/new?mode=sell"
+          href={`/transactions/${deviceLine.slug}/new?mode=sell`}
           icon={<HandCoins className="size-5" />}
           title="Bán máy từ kho"
         >
           Chọn máy trong kho để bán
         </HubCard>
         <HubCard
-          href="/transactions/thiet-bi/new?mode=income"
+          href={`/transactions/${deviceLine.slug}/new?mode=income`}
           icon={<Receipt className="size-5" />}
           title="Thu / Chi khác"
         >

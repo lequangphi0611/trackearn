@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Wrench } from "lucide-react";
+import { Plus } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { TRANSACTION_LINES, getTransactionLine } from "@/lib/transaction-lines";
 import { useQuickEntryStore } from "@/lib/quick-entry-store";
-import { HubCard } from "../HubCard";
+import { RepairJobHubCard } from "../RepairJobHubCard";
 import { TransactionForm } from "../../transactions/components/TransactionForm";
 import { DeviceTransactionForm } from "../../transactions/components/DeviceTransactionForm";
 
@@ -105,11 +105,7 @@ export function QuickEntryDialog({
               "Tạo job sửa máy" như hub /transactions/xe-muc — bổ sung để đồng
               bộ, đồng thời đóng vai cảnh báo chéo (issue #12 round 2 BA/UX):
               nhắc trước khi vào form là mục dưới KHÔNG trừ kho. */}
-          {config?.slug === "xe-muc" && (
-            <HubCard href="/repair-jobs/new" icon={<Wrench className="size-5" />} title="Tạo job sửa máy">
-              Sửa máy cho khách, xuất phụ tùng từ kho — dùng thay cho form bên dưới nếu có
-            </HubCard>
-          )}
+          {config?.repairJobHref && <RepairJobHubCard />}
 
           {config &&
             // key={line}: đổi mảng phải remount form, không giữ state mảng cũ.

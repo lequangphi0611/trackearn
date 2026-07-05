@@ -57,6 +57,10 @@ export function DashboardNav({ isOwner }: { isOwner: boolean }) {
       </Link>
       <Link
         href="/kho"
+        // /devices vừa là trang duyệt kho vừa là hub tạo giao dịch thiết bị
+        // (issue #12) — nội dung trang thực chất LÀ trang Kho (list máy,
+        // filter, tổng vốn tồn) cộng thêm 3 HubCard. Tab "Kho" sáng khi ở
+        // /devices là chủ đích, KHÔNG phải bug — không đổi match ở đây.
         className={linkClass(
           pathname.startsWith("/kho") ||
             pathname.startsWith("/devices") ||

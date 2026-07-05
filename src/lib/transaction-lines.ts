@@ -13,6 +13,8 @@ export type TransactionLine = {
   hubHref?: string;
   /** Menu "+" (tạo nhanh) dẫn vào hub thay vì thẳng `/transactions/<slug>/new` — dùng khi mảng có >1 luồng tạo cần phân biệt trước. */
   quickEntryUsesHub?: boolean;
+  /** Có lối "Tạo job sửa máy" riêng (xem RepairJobHubCard) — chỉ xe-muc hiện nay. */
+  repairJobHref?: string;
 };
 
 export const TRANSACTION_LINES: TransactionLine[] = [
@@ -23,6 +25,7 @@ export const TRANSACTION_LINES: TransactionLine[] = [
     expenseOnly: false,
     hasDevicePicker: false,
     quickEntryUsesHub: true,
+    repairJobHref: "/repair-jobs/new",
   },
   {
     slug: "thiet-bi",

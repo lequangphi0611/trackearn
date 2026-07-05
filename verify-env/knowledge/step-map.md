@@ -55,9 +55,9 @@ Skill `verify-app` tra file này để tái dùng spec cũ thay vì dựng lại
 - spec: verify-env/tests/bottomnav.spec.ts (read-only, giữ lại lâu dài)
 - màn hình: BottomNav (system-map)
 - src: src/app/(dashboard)/components/BottomNav.tsx, layout.tsx, src/lib/quick-entry-store.ts, components/dashboard/QuickEntryDialog.tsx, src/lib/transaction-lines.ts
-- verified: 2026-07-04 (pass mobile 7/7 áp dụng — 4 test chỉ chạy ở project mobile, tự skip ở chromium; 1 test hiện/ẩn chạy cả 2 project)
-- kịch bản: (1) nav `sm:hidden` — hiện ở mobile, ẩn ở desktop; (2) 5 nhãn Tổng quan/Giao dịch/[+]/Công nợ/Kho hiện đủ; (3) active tab đúng ở `/`, `/transactions`, `/debts`, `/kho`, và Kho vẫn active ở `/devices` + `/spare-parts` (route khác nhưng cùng tab); (4) FAB tại `/` mở thẳng dialog "Nhập giao dịch nhanh" (không qua menu); (5) FAB tại trang khác (`/transactions`) mở `Menu` liệt kê Xe múc/Thiết bị điện tử/Phụ kiện/Chi phí chung/Job sửa xe múc, không có dialog; click "Xe múc" điều hướng thật sang `/transactions/xe-muc/new`.
-- ghi chú: gặp lỗi `getByRole('menuitem',{name:'Xe múc'})` khớp nhầm cả "Job sửa xe múc" (substring) — đã fix bằng `exact:true`, xem ERROR.md.
+- verified: 2026-07-05 (code-review fix issue #12: 2 assertion lỗi thời được sửa — xem "kịch bản" dưới)
+- kịch bản: (1) nav `sm:hidden` — hiện ở mobile, ẩn ở desktop; (2) 5 nhãn Tổng quan/Giao dịch/[+]/Công nợ/Kho hiện đủ; (3) active tab đúng ở `/`, `/transactions`, `/debts`, `/kho`, và Kho vẫn active ở `/devices` + `/spare-parts` (route khác nhưng cùng tab); (4) FAB tại `/` mở thẳng dialog "Nhập giao dịch nhanh" (không qua menu); (5) FAB tại trang khác (`/transactions`) mở `Menu` liệt kê đúng 4 mục Xe múc/Thiết bị điện tử/Phụ kiện/Chi phí chung (KHÔNG còn "Job sửa xe múc" rời — đã gộp vào hub từ issue #12), không có dialog; click "Xe múc" điều hướng thật sang HUB `/transactions/xe-muc` (KHÔNG phải `/transactions/xe-muc/new` — `quickEntryUsesHub:true`).
+- ghi chú: gặp lỗi `getByRole('menuitem',{name:'Xe múc'})` khớp nhầm cả "Job sửa xe múc" (substring) khi menuitem đó còn tồn tại — đã fix bằng `exact:true` (nay không còn nguy cơ vì menuitem đã bị gộp bỏ), xem ERROR.md.
 
 ### Dialog fix (US-3 audit mở rộng) — 7 dialog còn lại đổi useActionState → onSubmit thủ công
 - spec: verify-env/tests/dialog-fix-smoke.tmp.spec.ts (giữ .tmp — flow ghi: tạo/xóa member, máy, phụ tùng, job; TỰ DỌN qua chính flow Delete/CancelSell test, trừ 1 quirk xem ⚠️ dưới)

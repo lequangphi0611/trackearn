@@ -2,10 +2,11 @@ import { cn } from "@/lib/utils";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Plus, Wrench, Receipt } from "lucide-react";
+import { Plus, Receipt } from "lucide-react";
 import { getTransactionLine } from "@/lib/transaction-lines";
 import { buttonVariants } from "@/components/ui/button";
 import { HubCard } from "../../components/HubCard";
+import { RepairJobHubCard } from "../../components/RepairJobHubCard";
 import { TransactionFilters as Filters } from "../components/TransactionFilters";
 import { TransactionResults } from "../components/TransactionResults";
 import { TransactionListSkeleton } from "../components/TransactionListSkeleton";
@@ -35,7 +36,7 @@ export default async function TransactionListPage({
         <h1 className="text-lg font-semibold">{config.label}</h1>
         {/* Xe múc có 2 HubCard bên dưới làm entry point chính — nút "Nhập" ở
             đây sẽ trùng đích, chỉ hiện cho mảng không có hub (issue #12). */}
-        {line !== "xe-muc" && (
+        {!config.repairJobHref && (
           <Link href={`/transactions/${line}/new`} className={cn(buttonVariants({ size: "sm" }), "max-sm:h-10")}>
             <Plus />
             Nhập
@@ -45,12 +46,10 @@ export default async function TransactionListPage({
 
       {/* Xe múc gộp 2 entry point (job sửa máy vs. thu/chi trực tiếp) từng rời
           rạc trong menu "+" thành 1 hub — issue #12. */}
-      {line === "xe-muc" && (
+      {config.repairJobHref && (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <HubCard href="/repair-jobs/new" icon={<Wrench className="size-5" />} title="Tạo job sửa máy">
-            Sửa máy cho khách, xuất phụ tùng từ kho
-          </HubCard>
-          <HubCard href="/transactions/xe-muc/new" icon={<Receipt className="size-5" />} title="Nhập thu / chi">
+          <RepairJobHubCard />
+          <HubCard href={`/transactions/${line}/new`} icon={<Receipt className="size-5" />} title="Nhập thu / chi">
             Nhiên liệu, lương, doanh thu cho thuê...
           </HubCard>
         </div>

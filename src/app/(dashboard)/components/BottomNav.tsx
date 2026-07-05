@@ -36,6 +36,9 @@ const RIGHT: Tab[] = [
   {
     // Hub hàng hoá: Thiết bị nay, Phụ tùng (Phase 3b) sau — tab active xuyên các
     // route kho để không phải thêm tab mới mỗi mảng.
+    // /devices vừa là trang duyệt kho vừa là hub tạo giao dịch thiết bị (issue
+    // #12) — nội dung trang thực chất LÀ trang Kho cộng thêm 3 HubCard, nên
+    // tab "Kho" sáng khi ở /devices là chủ đích, KHÔNG phải bug.
     href: "/kho",
     label: "Kho",
     icon: Boxes,
