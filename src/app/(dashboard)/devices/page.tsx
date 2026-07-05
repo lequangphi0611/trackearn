@@ -1,11 +1,8 @@
-import { cn } from "@/lib/utils";
 import { Suspense } from "react";
-import Link from "next/link";
-import { Plus, PackagePlus, HandCoins, Receipt } from "lucide-react";
+import { PackagePlus, HandCoins, Receipt } from "lucide-react";
 import type { DeviceFilters, DeviceStatusFilter } from "@/queries/devices";
 import { getStockCapital } from "@/queries/devices";
 import { formatCurrency } from "@/lib/format";
-import { buttonVariants } from "@/components/ui/button";
 import { HubCard } from "../components/HubCard";
 import { DeviceFilters as Filters } from "./components/DeviceFilters";
 import { DeviceResults } from "./components/DeviceResults";
@@ -53,16 +50,12 @@ export default async function DevicesPage({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between gap-2">
-        <h1 className="text-lg font-semibold">Kho thiết bị</h1>
-        <Link href="/devices/new" className={cn(buttonVariants({ size: "sm" }), "max-sm:h-10")}>
-          <Plus />
-          Nhập máy
-        </Link>
-      </div>
+      <h1 className="text-lg font-semibold">Kho thiết bị</h1>
 
       {/* Hub duy nhất cho thiết bị (menu "+" dẫn thẳng vào đây) — issue #12:
-          gộp 3 luồng nhập máy / bán máy / thu-chi khác từng rời rạc. */}
+          gộp 3 luồng nhập máy / bán máy / thu-chi khác từng rời rạc. HubCard
+          "Nhập máy mới" đã là entry point chính nên KHÔNG còn nút "Nhập máy"
+          trùng đích ở header. */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <HubCard href="/devices/new" icon={<PackagePlus className="size-5" />} title="Nhập máy mới">
           Mua máy, lưu vào kho

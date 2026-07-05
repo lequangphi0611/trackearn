@@ -106,7 +106,7 @@ export function BottomNav() {
                 {TRANSACTION_LINES.map((l) => (
                   <MenuItem
                     key={l.slug}
-                    render={<Link href={getQuickEntryHref(l.slug)} />}
+                    render={<Link href={getQuickEntryHref(l)} />}
                   >
                     {l.label}
                   </MenuItem>

@@ -44,7 +44,7 @@ export function DashboardNav({ isOwner }: { isOwner: boolean }) {
           {TRANSACTION_LINES.map((l) => (
             <MenuItem
               key={l.slug}
-              render={<Link href={getLineHubHref(l.slug)} />}
+              render={<Link href={getLineHubHref(l)} />}
             >
               {l.label}
             </MenuItem>

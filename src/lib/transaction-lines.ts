@@ -9,6 +9,10 @@ export type TransactionLine = {
   expenseOnly: boolean;
   /** Có kho máy để "gắn với máy" khi ghi Thu — xem transactions/[line]/new. */
   hasDevicePicker: boolean;
+  /** Override hub duy nhất của mảng (issue #12) — mặc định là chính trang danh sách `/transactions/<slug>`. */
+  hubHref?: string;
+  /** Menu "+" (tạo nhanh) dẫn vào hub thay vì thẳng `/transactions/<slug>/new` — dùng khi mảng có >1 luồng tạo cần phân biệt trước. */
+  quickEntryUsesHub?: boolean;
 };
 
 export const TRANSACTION_LINES: TransactionLine[] = [
@@ -18,6 +22,7 @@ export const TRANSACTION_LINES: TransactionLine[] = [
     label: BUSINESS_LINE_LABELS.xe_muc,
     expenseOnly: false,
     hasDevicePicker: false,
+    quickEntryUsesHub: true,
   },
   {
     slug: "thiet-bi",
@@ -25,6 +30,8 @@ export const TRANSACTION_LINES: TransactionLine[] = [
     label: BUSINESS_LINE_LABELS.thiet_bi,
     expenseOnly: false,
     hasDevicePicker: true,
+    hubHref: "/devices",
+    quickEntryUsesHub: true,
   },
   {
     slug: "phu-kien",
@@ -54,13 +61,13 @@ export function getLineByBusinessLine(
 
 // Hub duy nhất mỗi mảng (issue #12): thiết bị dùng /devices (kho) làm hub
 // thay vì trang danh sách giao dịch riêng; các mảng khác vẫn là chính nó.
-export function getLineHubHref(slug: string): string {
-  return slug === "thiet-bi" ? "/devices" : `/transactions/${slug}`;
+export function getLineHubHref(line: Pick<TransactionLine, "slug" | "hubHref">): string {
+  return line.hubHref ?? `/transactions/${line.slug}`;
 }
 
-// Entry point cho menu "+" (tạo nhanh): xe múc và thiết bị dẫn vào hub để
-// người dùng chọn muốn làm gì trước, các mảng còn lại tạo thẳng.
-export function getQuickEntryHref(slug: string): string {
-  if (slug === "xe-muc" || slug === "thiet-bi") return getLineHubHref(slug);
-  return `/transactions/${slug}/new`;
+// Entry point cho menu "+" (tạo nhanh): mảng có quickEntryUsesHub dẫn vào hub
+// để người dùng chọn muốn làm gì trước, các mảng còn lại tạo thẳng.
+export function getQuickEntryHref(line: TransactionLine): string {
+  if (line.quickEntryUsesHub) return getLineHubHref(line);
+  return `/transactions/${line.slug}/new`;
 }

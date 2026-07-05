@@ -1,8 +1,10 @@
 import { notFound } from "next/navigation";
+import { Wrench } from "lucide-react";
 import { getTransactionLine } from "@/lib/transaction-lines";
 import { getExpenseCategories } from "@/queries/expense-categories";
 import { getInStockDevicesForPicker } from "@/queries/devices";
 import { vnDateTimeLocal, vnTodayISODate } from "@/lib/date";
+import { HubCard } from "../../../components/HubCard";
 import { TransactionForm } from "../../components/TransactionForm";
 import {
   DeviceTransactionForm,
@@ -46,12 +48,22 @@ export default async function NewTransactionPage({
           defaultMode={defaultMode}
         />
       ) : (
-        <TransactionForm
-          line={line}
-          lockType={config.expenseOnly ? "expense" : undefined}
-          defaultDateTime={vnDateTimeLocal()}
-          categories={categories}
-        />
+        <>
+          {/* Cảnh báo chéo mềm (issue #12 round 2): trang này chỉ ghi thu/chi
+              trực tiếp, KHÔNG trừ kho — nhắc lối job trước khi nhập, phòng
+              trường hợp vào thẳng URL này (bookmark, gõ tay) bỏ qua hub. */}
+          {config.slug === "xe-muc" && (
+            <HubCard href="/repair-jobs/new" icon={<Wrench className="size-5" />} title="Tạo job sửa máy">
+              Sửa máy cho khách, xuất phụ tùng từ kho — dùng thay cho form bên dưới nếu có
+            </HubCard>
+          )}
+          <TransactionForm
+            line={line}
+            lockType={config.expenseOnly ? "expense" : undefined}
+            defaultDateTime={vnDateTimeLocal()}
+            categories={categories}
+          />
+        </>
       )}
     </div>
   );

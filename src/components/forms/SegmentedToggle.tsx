@@ -16,11 +16,13 @@ export function SegmentedToggle<T extends string>({
   fill?: boolean;
 }) {
   return (
-    <div className="flex flex-wrap gap-2">
+    <div role="radiogroup" className="flex flex-wrap gap-2">
       {options.map((o) => (
         <Button
           key={o.key}
           type="button"
+          role="radio"
+          aria-checked={value === o.key}
           variant={value === o.key ? "default" : "outline"}
           size="sm"
           className={fill ? "flex-1" : undefined}

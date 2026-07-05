@@ -33,10 +33,14 @@ export default async function TransactionListPage({
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-2">
         <h1 className="text-lg font-semibold">{config.label}</h1>
-        <Link href={`/transactions/${line}/new`} className={cn(buttonVariants({ size: "sm" }), "max-sm:h-10")}>
-          <Plus />
-          Nhập
-        </Link>
+        {/* Xe múc có 2 HubCard bên dưới làm entry point chính — nút "Nhập" ở
+            đây sẽ trùng đích, chỉ hiện cho mảng không có hub (issue #12). */}
+        {line !== "xe-muc" && (
+          <Link href={`/transactions/${line}/new`} className={cn(buttonVariants({ size: "sm" }), "max-sm:h-10")}>
+            <Plus />
+            Nhập
+          </Link>
+        )}
       </div>
 
       {/* Xe múc gộp 2 entry point (job sửa máy vs. thu/chi trực tiếp) từng rời
