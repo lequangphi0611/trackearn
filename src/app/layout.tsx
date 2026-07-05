@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Be_Vietnam_Pro, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
+import { RegisterServiceWorker } from "@/components/RegisterServiceWorker";
 import "./globals.css";
 
 const sans = Be_Vietnam_Pro({
@@ -23,6 +24,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   viewportFit: "cover",
+  themeColor: "#E0A020",
 };
 
 // Chạy TRƯỚC hydration để không chớp sáng/tối sai theme (FOUC).
@@ -45,6 +47,9 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body className="flex min-h-full flex-col">
+        {/* Root layout (không phải chỉ (dashboard)) — SW phải đăng ký được
+            ngay từ trang login/register, không chỉ sau khi vào dashboard. */}
+        <RegisterServiceWorker />
         {children}
         <Toaster />
       </body>

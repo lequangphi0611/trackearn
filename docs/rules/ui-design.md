@@ -65,6 +65,12 @@ Mọi cột tiền/số lượng dùng `font-mono` + class **`.tabular`** (hoặ
 | `text-base font-semibold` | card/section title |
 | `text-lg font-semibold` | page title (mobile) |
 
+> **Ngoại lệ mobile — `Input`/`Select`/`Combobox`**: dưới breakpoint `sm` dùng
+> `text-base` (16px) thay vì `text-sm`, giữ nguyên `sm:text-sm` từ `sm:` trở
+> lên (`src/components/ui/{input,select,combobox}.tsx`). iOS Safari tự động
+> zoom khi focus input có `font-size < 16px` — đây là ngoại lệ có chủ đích chỉ
+> áp dụng cho control nhập liệu, không áp dụng cho `text-sm` ở cell/label khác.
+
 ---
 
 ## Spacing & Layout

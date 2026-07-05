@@ -68,7 +68,10 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   // Bỏ qua toàn bộ /api (tự lo auth, trả JSON), asset Next & file tĩnh.
+  // Mỗi literal neo `(?:/|$)` (thư mục) hoặc `$` (file) — tránh path CHỈ BẮT
+  // ĐẦU bằng chuỗi đó (vd /offline-promo, /icons-old) bị loại khỏi auth check
+  // do khớp thiếu ranh giới segment.
   matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|manifest.webmanifest|robots.txt|sitemap.xml|icons).*)",
+    "/((?!api(?:/|$)|_next/static(?:/|$)|_next/image(?:/|$)|favicon\\.ico$|manifest\\.webmanifest$|robots\\.txt$|sitemap\\.xml$|icons(?:/|$)|offline$|sw\\.js$).*)",
   ],
 };

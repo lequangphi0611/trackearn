@@ -24,12 +24,14 @@ export default defineConfig({
     {
       name: "chromium",
       testMatch: /tests[\\/].*\.spec\.ts/,
+      testIgnore: /pwa\.spec\.ts/, // chỉ chạy qua `pnpm verify:pwa` (build production)
       use: { ...devices["Desktop Chrome"], storageState: STORAGE_STATE },
       dependencies: ["setup"],
     },
     {
       name: "mobile",
       testMatch: /tests[\\/].*\.spec\.ts/,
+      testIgnore: /pwa\.spec\.ts/, // chỉ chạy qua `pnpm verify:pwa` (build production)
       use: { ...devices["Pixel 5"], storageState: STORAGE_STATE },
       dependencies: ["setup"],
     },

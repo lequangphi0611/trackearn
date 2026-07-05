@@ -24,9 +24,14 @@
 
 ## Mobile
 
-- **PWA** — `next-pwa` hoặc custom Service Worker
+- **PWA** — custom Service Worker viết tay (`public/sw.js`, ~50 dòng), không
+  dùng `next-pwa`/`serwist`: cache-first cho `_next/static/*`, network-only cho
+  trang/dữ liệu (tránh cache sai dữ liệu tài chính), fallback `/offline` khi
+  mất mạng. Manifest qua file convention `src/app/manifest.ts` (Next.js tự
+  sinh `/manifest.webmanifest` + `<link rel="manifest">`).
 - Responsive layout, thêm vào Home Screen trên iOS/Android
-- Không có app native riêng
+- Không có app native riêng, không có custom install-prompt banner (dựa vào UI
+  cài đặt mặc định của trình duyệt)
 
 ## Deployment & Infrastructure
 
