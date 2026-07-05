@@ -5,26 +5,12 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Field } from "@/components/forms/Field";
-import { InputMoney } from "@/components/forms/InputMoney";
+import { MoneyField } from "@/components/forms/MoneyField";
 import { SubmitButton } from "@/components/forms/SubmitButton";
-import { Label } from "@/components/ui/label";
 import { getFormError } from "@/lib/form";
 import { formatCurrency } from "@/lib/format";
 import { createRepairJob } from "../actions";
-import { JobLinesEditor, emptyLine, type LineDraft, type PickerPart } from "./JobLinesEditor";
-
-function partsTotal(lines: LineDraft[]): number {
-  return lines.reduce((s, l) => s + Math.round(Number(l.quantity || 0) * (l.unitPrice ?? 0)), 0);
-}
-
-// `unitPrice` để trống khi đang sửa dở → JSON.stringify bỏ qua key `undefined`,
-// server (Zod `unitPrice` bắt buộc) sẽ reject. Mặc định về 0 khi serialize để
-// giữ đúng hành vi cũ (giá trống → submit 0), không đổi khi đang gõ.
-function cleanLines(lines: LineDraft[]) {
-  return lines
-    .filter((l) => l.sparePartId && Number(l.quantity) > 0)
-    .map((l) => ({ ...l, unitPrice: l.unitPrice ?? 0 }));
-}
+import { JobLinesEditor, emptyLine, partsTotal, cleanLines, type LineDraft, type PickerPart } from "./JobLinesEditor";
 
 export function CreateJobForm({ parts, defaultDate }: { parts: PickerPart[]; defaultDate: string }) {
   const router = useRouter();
@@ -70,11 +56,13 @@ export function CreateJobForm({ parts, defaultDate }: { parts: PickerPart[]; def
 
       <JobLinesEditor parts={parts} value={lines} onChange={setLines} />
 
-      <Label className="flex flex-col items-start gap-1.5">
-        Tiền công (₫)
-        <InputMoney value={laborFee} onChange={setLaborFee} name="laborFee" />
-      </Label>
-      {fieldErrors?.laborFee?.[0] && <p className="text-xs text-destructive">{fieldErrors.laborFee[0]}</p>}
+      <MoneyField
+        label="Tiền công (₫)"
+        name="laborFee"
+        value={laborFee}
+        onChange={setLaborFee}
+        error={fieldErrors?.laborFee?.[0]}
+      />
 
       <div className="flex items-center justify-between rounded-lg bg-muted/40 px-3 py-2 text-sm">
         <span className="text-muted-foreground">Tổng tiền</span>
@@ -93,13 +81,12 @@ export function CreateJobForm({ parts, defaultDate }: { parts: PickerPart[]; def
 
       {payLater && (
         <>
-          <Label className="flex flex-col items-start gap-1.5">
-            Đã thu (₫)
-            <InputMoney value={paid} onChange={setPaid} />
-          </Label>
-          {fieldErrors?.paidAmount?.[0] && (
-            <p className="text-xs text-destructive">{fieldErrors.paidAmount[0]}</p>
-          )}
+          <MoneyField
+            label="Đã thu (₫)"
+            value={paid}
+            onChange={setPaid}
+            error={fieldErrors?.paidAmount?.[0]}
+          />
           <Field label="Tên người nợ" name="counterpartyName" error={fieldErrors?.counterpartyName?.[0]} />
           <Field label="Ngày hẹn trả" name="dueDate" type="date" />
         </>

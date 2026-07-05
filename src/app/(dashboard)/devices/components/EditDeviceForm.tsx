@@ -5,10 +5,9 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Field } from "@/components/forms/Field";
-import { InputMoney } from "@/components/forms/InputMoney";
+import { MoneyField } from "@/components/forms/MoneyField";
 import { SubmitButton } from "@/components/forms/SubmitButton";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -95,13 +94,13 @@ export function EditDeviceForm({
         {/* Máy đã bán: chỉ sửa tên + tình trạng (server cũng chặn). */}
         {!sold && (
           <>
-            <Label className="flex flex-col items-start gap-1.5">
-              Giá mua (₫)
-              <InputMoney value={buyPrice} onChange={setBuyPrice} name="buyPrice" />
-            </Label>
-            {fieldErrors?.buyPrice?.[0] && (
-              <p className="text-xs text-destructive">{fieldErrors.buyPrice[0]}</p>
-            )}
+            <MoneyField
+              label="Giá mua (₫)"
+              name="buyPrice"
+              value={buyPrice}
+              onChange={setBuyPrice}
+              error={fieldErrors?.buyPrice?.[0]}
+            />
             <Field label="Ngày mua" name="buyDate" type="date" defaultValue={buyDate ?? ""} />
             <Field label="Nguồn mua" name="buyFrom" defaultValue={buyFrom ?? ""} />
           </>

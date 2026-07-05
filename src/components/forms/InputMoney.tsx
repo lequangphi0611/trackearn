@@ -1,23 +1,27 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatCurrency, vndFormatter } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-type InputMoneyProps = {
+export type InputMoneyProps = {
   value: number | undefined;
   onChange: (value: number | undefined) => void;
   placeholder?: string;
   disabled?: boolean;
   name?: string;
   required?: boolean;
+  id?: string;
+  "aria-invalid"?: boolean;
+  "aria-label"?: string;
   /** Cho phép gõ dấu "-". Mặc định false — 3 use case hiện tại (doanh thu, chi phí, giá vốn) đều không âm. */
   allowNegative?: boolean;
-  /** Chỉ dấu (âm/dương) ảnh hưởng tới allowNegative hiệu lực — không chặn cứng giá trị khi gõ. */
+  /** Dấu ảnh hưởng allowNegative hiệu lực; clamp giá trị lên min khi blur (không chặn từng keystroke — sẽ phá gõ tăng dần). */
   min?: number;
+  /** Chặn cứng từng keystroke — gõ thêm digit chỉ tăng độ lớn nên an toàn để chặn ngay. */
   max?: number;
   className?: string;
 };
@@ -79,6 +83,21 @@ function removeDigitAt(digitsOnly: string, index: number): string {
   return digitsOnly.slice(0, index) + digitsOnly.slice(index + 1);
 }
 
+// Luôn tự set `el.value`/cursor ngay trong handler thay vì chờ React
+// re-render + effect: nếu chuỗi digit chuẩn hoá trùng `raw` hiện tại (vd gõ
+// thêm số "0" thừa bị normalizeLeadingZeros strip về y hệt cũ), setState là
+// no-op và React bail re-render — một effect khoá theo `display` sẽ không
+// bao giờ chạy, để lại DOM/cursor sai. Set trực tiếp ở đây thì luôn đúng bất
+// kể React có re-render hay không (nếu có re-render thật, React set lại
+// đúng `el.value` y hệt — no-op, không đụng tới selection).
+function syncDom(el: HTMLInputElement | null, nextRaw: string, digitCursorCount: number) {
+  if (!el) return;
+  const nextDisplay = formatDisplay(nextRaw);
+  el.value = nextDisplay;
+  const pos = cursorPosForDigitCount(nextDisplay, digitCursorCount);
+  el.setSelectionRange(pos, pos);
+}
+
 /**
  * Input tiền VND dùng chung — auto-format dấu chấm phân nghìn (vi-VN) khi gõ,
  * giữ vị trí con trỏ tương đối theo số chữ số (không nhảy về cuối) khi sửa
@@ -93,13 +112,15 @@ export const InputMoney = ({
   disabled,
   name,
   required,
+  id,
+  "aria-invalid": ariaInvalid,
+  "aria-label": ariaLabel,
   allowNegative = false,
   min,
   max,
   className,
 }: InputMoneyProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
-  const pendingCursorRef = useRef<number | null>(null);
   const [raw, setRaw] = useState(() => digitsFromNumber(value));
   const [prevValueProp, setPrevValueProp] = useState(value);
   // `lastEmitted`/`lastDigitCount` dùng state (không phải ref) vì cần đọc/ghi
@@ -121,14 +142,12 @@ export const InputMoney = ({
   }
 
   const effectiveAllowNegative = allowNegative && (min === undefined || min < 0);
+  // Chỉ chặn chiều dương (gõ thêm digit chỉ tăng độ lớn nên chặn cứng an
+  // toàn, giống lý do overflow-guard MAX_SAFE_INTEGER) — max âm (không có
+  // call site nào dùng) sẽ gặp lại đúng vấn đề mà thiết kế min tránh, để
+  // scope out.
+  const effectiveMax = Math.min(max ?? Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER);
   const display = formatDisplay(raw);
-
-  useLayoutEffect(() => {
-    if (pendingCursorRef.current === null) return;
-    const pos = cursorPosForDigitCount(display, pendingCursorRef.current);
-    inputRef.current?.setSelectionRange(pos, pos);
-    pendingCursorRef.current = null;
-  }, [display]);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const el = e.target;
@@ -147,17 +166,13 @@ export const InputMoney = ({
     signAndDigits = normalizeLeadingZeros(signAndDigits);
     const candidate = parseSignAndDigits(signAndDigits);
 
-    if (candidate !== undefined && Math.abs(candidate) > Number.MAX_SAFE_INTEGER) {
-      // Chặn cứng bằng cách revert thẳng DOM: nếu `raw` không đổi, React bỏ
-      // qua re-render (Object.is check) và sẽ để lại ký tự vừa gõ (bị từ
-      // chối) trong DOM nếu không tự tay set lại `el.value`.
-      el.value = display;
-      const pos = cursorPosForDigitCount(display, lastDigitCount);
-      el.setSelectionRange(pos, pos);
+    if (candidate !== undefined && (Math.abs(candidate) > Number.MAX_SAFE_INTEGER || candidate > effectiveMax)) {
+      // Chặn cứng: revert thẳng DOM về giá trị cũ, không gọi onChange.
+      syncDom(el, raw, lastDigitCount);
       return;
     }
 
-    pendingCursorRef.current = digitsBeforeCursor;
+    syncDom(el, signAndDigits, digitsBeforeCursor);
     setLastDigitCount(digitsBeforeCursor);
     setLastEmitted(candidate);
     setRaw(signAndDigits);
@@ -167,7 +182,7 @@ export const InputMoney = ({
   function commit(nextRaw: string, digitCursorCount: number) {
     const normalized = normalizeLeadingZeros(nextRaw);
     const candidate = parseSignAndDigits(normalized);
-    pendingCursorRef.current = digitCursorCount;
+    syncDom(inputRef.current, normalized, digitCursorCount);
     setLastDigitCount(digitCursorCount);
     setLastEmitted(candidate);
     setRaw(normalized);
@@ -213,14 +228,25 @@ export const InputMoney = ({
   }
 
   const chipTarget = (value ?? 0) * 1000;
-  const chipOverflow = Math.abs(chipTarget) > Number.MAX_SAFE_INTEGER;
+  const chipOverflow = Math.abs(chipTarget) > Number.MAX_SAFE_INTEGER || chipTarget > effectiveMax;
   const chipDisabled = disabled || value === undefined || value === 0 || chipOverflow;
+
+  // min không chặn cứng theo keystroke (sẽ phá khả năng gõ tăng dần cho min
+  // nhiều chữ số, vd min=100000 sẽ không cho gõ nổi "1","10","1000"...) —
+  // clamp lên min khi blur thay vào đó. Field rỗng khi blur không bị ép giá
+  // trị (required + Zod .positive()/.min() phía server đã lo case rỗng).
+  function handleBlur() {
+    if (min === undefined || value === undefined) return;
+    if (value >= min) return;
+    const nextRaw = digitsFromNumber(min);
+    commit(nextRaw, countAllDigits(nextRaw));
+  }
 
   function applyChip() {
     if (chipDisabled) return;
     const nextRaw = (chipTarget < 0 ? "-" : "") + String(Math.abs(chipTarget));
     const digitCount = countAllDigits(nextRaw);
-    pendingCursorRef.current = digitCount; // đặt cursor ở cuối sau khi apply chip
+    syncDom(inputRef.current, nextRaw, digitCount); // cursor ở cuối sau khi apply chip
     setLastDigitCount(digitCount);
     setLastEmitted(chipTarget);
     setRaw(nextRaw);
@@ -232,16 +258,20 @@ export const InputMoney = ({
       <div className="flex items-center gap-2">
         <Input
           ref={inputRef}
+          id={id}
           type="text"
           inputMode="numeric"
           placeholder={placeholder}
           disabled={disabled}
           required={required}
+          aria-invalid={ariaInvalid}
+          aria-label={ariaLabel}
           min={min}
           max={max}
           value={display}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
+          onBlur={handleBlur}
           className={cn("tabular", className)}
         />
         <span className="shrink-0 text-sm text-muted-foreground tabular">₫</span>

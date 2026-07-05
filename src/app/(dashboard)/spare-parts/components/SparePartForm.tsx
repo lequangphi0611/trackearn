@@ -5,9 +5,8 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Field } from "@/components/forms/Field";
-import { InputMoney } from "@/components/forms/InputMoney";
+import { MoneyField } from "@/components/forms/MoneyField";
 import { SubmitButton } from "@/components/forms/SubmitButton";
-import { Label } from "@/components/ui/label";
 import { getFormError } from "@/lib/form";
 import { createOrRestockSparePart } from "../actions";
 
@@ -44,11 +43,14 @@ export function SparePartForm() {
         required
         error={fieldErrors?.quantity?.[0]}
       />
-      <Label className="flex flex-col items-start gap-1.5">
-        Giá nhập / đơn vị (₫)
-        <InputMoney value={buyPrice} onChange={setBuyPrice} name="buyPrice" required />
-      </Label>
-      {fieldErrors?.buyPrice?.[0] && <p className="text-xs text-destructive">{fieldErrors.buyPrice[0]}</p>}
+      <MoneyField
+        label="Giá nhập / đơn vị (₫)"
+        name="buyPrice"
+        value={buyPrice}
+        onChange={setBuyPrice}
+        required
+        error={fieldErrors?.buyPrice?.[0]}
+      />
       <Field
         label="Ngưỡng cảnh báo tồn thấp"
         name="minQuantity"

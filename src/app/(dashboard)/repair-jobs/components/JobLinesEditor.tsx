@@ -5,7 +5,6 @@ import { Select } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { InputMoney } from "@/components/forms/InputMoney";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { formatQuantity } from "@/lib/format";
 
 export type PickerPart = {
@@ -19,6 +18,19 @@ export type PickerPart = {
 export type LineDraft = { sparePartId: string; quantity: string; unitPrice: number | undefined };
 
 export const emptyLine: LineDraft = { sparePartId: "", quantity: "", unitPrice: undefined };
+
+export function partsTotal(lines: LineDraft[]): number {
+  return lines.reduce((s, l) => s + Math.round(Number(l.quantity || 0) * (l.unitPrice ?? 0)), 0);
+}
+
+// `unitPrice` để trống khi đang sửa dở → JSON.stringify bỏ qua key `undefined`,
+// server (Zod `unitPrice` bắt buộc) sẽ reject. Mặc định về 0 khi serialize để
+// giữ đúng hành vi cũ (giá trống → submit 0), không đổi khi đang gõ.
+export function cleanLines(lines: LineDraft[]) {
+  return lines
+    .filter((l) => l.sparePartId && Number(l.quantity) > 0)
+    .map((l) => ({ ...l, unitPrice: l.unitPrice ?? 0 }));
+}
 
 export function JobLinesEditor({
   parts,
@@ -88,14 +100,14 @@ export function JobLinesEditor({
                 onChange={(e) => update(i, { quantity: e.target.value })}
                 className="w-1/2"
               />
-              <Label className="w-1/2">
-                <span className="sr-only">Giá bán</span>
+              <div className="w-1/2">
                 <InputMoney
+                  aria-label="Giá bán"
                   value={line.unitPrice}
                   onChange={(v) => update(i, { unitPrice: v })}
                   placeholder="Giá bán"
                 />
-              </Label>
+              </div>
             </div>
             {overStock && (
               <p className="mt-1.5 flex items-center gap-1 text-xs text-expense">

@@ -5,9 +5,8 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Field } from "@/components/forms/Field";
-import { InputMoney } from "@/components/forms/InputMoney";
+import { MoneyField } from "@/components/forms/MoneyField";
 import { SubmitButton } from "@/components/forms/SubmitButton";
-import { Label } from "@/components/ui/label";
 import { getFormError } from "@/lib/form";
 import { createDevice } from "../actions";
 import { ConditionNoteField } from "./ConditionNoteField";
@@ -42,11 +41,14 @@ export function DeviceForm({ defaultDate }: { defaultDate: string }) {
 
       <Field label="Tên máy" name="name" required error={fieldErrors?.name?.[0]} />
       <ConditionNoteField error={fieldErrors?.conditionNote?.[0]} />
-      <Label className="flex flex-col items-start gap-1.5">
-        Giá mua (₫)
-        <InputMoney value={buyPrice} onChange={setBuyPrice} name="buyPrice" required />
-      </Label>
-      {fieldErrors?.buyPrice?.[0] && <p className="text-xs text-destructive">{fieldErrors.buyPrice[0]}</p>}
+      <MoneyField
+        label="Giá mua (₫)"
+        name="buyPrice"
+        value={buyPrice}
+        onChange={setBuyPrice}
+        required
+        error={fieldErrors?.buyPrice?.[0]}
+      />
       <Field
         label="Ngày mua"
         name="buyDate"
@@ -69,13 +71,12 @@ export function DeviceForm({ defaultDate }: { defaultDate: string }) {
 
       {payLater && (
         <>
-          <Label className="flex flex-col items-start gap-1.5">
-            Đã trả (₫)
-            <InputMoney value={paid} onChange={setPaid} />
-          </Label>
-          {fieldErrors?.paidAmount?.[0] && (
-            <p className="text-xs text-destructive">{fieldErrors.paidAmount[0]}</p>
-          )}
+          <MoneyField
+            label="Đã trả (₫)"
+            value={paid}
+            onChange={setPaid}
+            error={fieldErrors?.paidAmount?.[0]}
+          />
           <Field
             label="Tên đối tác (người bán)"
             name="counterpartyName"

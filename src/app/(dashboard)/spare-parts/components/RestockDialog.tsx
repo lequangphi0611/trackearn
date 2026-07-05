@@ -17,9 +17,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Field } from "@/components/forms/Field";
-import { InputMoney } from "@/components/forms/InputMoney";
+import { MoneyField } from "@/components/forms/MoneyField";
 import { SubmitButton } from "@/components/forms/SubmitButton";
-import { Label } from "@/components/ui/label";
 import { getFormError } from "@/lib/form";
 import { formatCurrency } from "@/lib/format";
 import type { ActionResult } from "@/lib/types";
@@ -92,19 +91,15 @@ export function RestockDialog({
             required
             error={fieldErrors?.quantity?.[0]}
           />
-          <Label className="flex flex-col items-start gap-1.5">
-            Giá nhập / đơn vị (₫)
-            <InputMoney
-              value={newBuyPrice}
-              onChange={setNewBuyPrice}
-              name="buyPrice"
-              min={1}
-              required
-            />
-          </Label>
-          {fieldErrors?.buyPrice?.[0] && (
-            <p className="text-xs text-destructive">{fieldErrors.buyPrice[0]}</p>
-          )}
+          <MoneyField
+            label="Giá nhập / đơn vị (₫)"
+            name="buyPrice"
+            value={newBuyPrice}
+            onChange={setNewBuyPrice}
+            min={1}
+            required
+            error={fieldErrors?.buyPrice?.[0]}
+          />
           <DialogFooter>
             <DialogClose render={<Button type="button" variant="ghost" size="sm">Huỷ</Button>} />
             <SubmitButton size="sm" pending={isPending}>Xác nhận nhập</SubmitButton>

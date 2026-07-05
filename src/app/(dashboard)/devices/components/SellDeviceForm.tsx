@@ -4,8 +4,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Field } from "@/components/forms/Field";
-import { InputMoney } from "@/components/forms/InputMoney";
-import { Label } from "@/components/ui/label";
+import { MoneyField } from "@/components/forms/MoneyField";
 import { getFormError } from "@/lib/form";
 import type { ActionResult } from "@/lib/types";
 import { sellDevice } from "../actions";
@@ -74,11 +73,15 @@ export function SellDeviceForm({
           <AlertDescription>{formError}</AlertDescription>
         </Alert>
       )}
-      <Label className="flex flex-col items-start gap-1.5">
-        Giá bán (₫)
-        <InputMoney value={sellPrice} onChange={setSellPrice} name="sellPrice" min={1} required />
-      </Label>
-      {fieldErrors?.sellPrice?.[0] && <p className="text-xs text-destructive">{fieldErrors.sellPrice[0]}</p>}
+      <MoneyField
+        label="Giá bán (₫)"
+        name="sellPrice"
+        value={sellPrice}
+        onChange={setSellPrice}
+        min={1}
+        required
+        error={fieldErrors?.sellPrice?.[0]}
+      />
       <Field
         label="Ngày bán"
         name="sellDate"
@@ -98,13 +101,12 @@ export function SellDeviceForm({
       </label>
       {payLater && (
         <>
-          <Label className="flex flex-col items-start gap-1.5">
-            Đã thu (₫)
-            <InputMoney value={paid} onChange={setPaid} />
-          </Label>
-          {fieldErrors?.paidAmount?.[0] && (
-            <p className="text-xs text-destructive">{fieldErrors.paidAmount[0]}</p>
-          )}
+          <MoneyField
+            label="Đã thu (₫)"
+            value={paid}
+            onChange={setPaid}
+            error={fieldErrors?.paidAmount?.[0]}
+          />
           <Field
             label="Tên đối tác (người mua)"
             name="counterpartyName"

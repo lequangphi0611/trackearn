@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Field } from "@/components/forms/Field";
-import { InputMoney } from "@/components/forms/InputMoney";
+import { MoneyField } from "@/components/forms/MoneyField";
 import { SegmentedToggle } from "@/components/forms/SegmentedToggle";
 import { SubmitButton } from "@/components/forms/SubmitButton";
 import { getFormError } from "@/lib/form";
@@ -101,11 +101,14 @@ export function TransactionForm({
         </div>
       )}
 
-      <Label className="flex flex-col items-start gap-1.5">
-        Số tiền (₫)
-        <InputMoney value={amount} onChange={setAmount} name="amount" required />
-      </Label>
-      {fieldErrors?.amount?.[0] && <p className="text-xs text-destructive">{fieldErrors.amount[0]}</p>}
+      <MoneyField
+        label="Số tiền (₫)"
+        name="amount"
+        value={amount}
+        onChange={setAmount}
+        required
+        error={fieldErrors?.amount?.[0]}
+      />
 
       {type === "expense" && (
         <div className="flex flex-col gap-1.5">
@@ -133,13 +136,12 @@ export function TransactionForm({
 
       {payLater && (
         <>
-          <Label className="flex flex-col items-start gap-1.5">
-            Đã trả (₫)
-            <InputMoney value={paid} onChange={setPaid} />
-          </Label>
-          {fieldErrors?.paidAmount?.[0] && (
-            <p className="text-xs text-destructive">{fieldErrors.paidAmount[0]}</p>
-          )}
+          <MoneyField
+            label="Đã trả (₫)"
+            value={paid}
+            onChange={setPaid}
+            error={fieldErrors?.paidAmount?.[0]}
+          />
           <Field
             label="Tên đối tác"
             name="counterpartyName"

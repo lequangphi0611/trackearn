@@ -16,9 +16,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Field } from "@/components/forms/Field";
-import { InputMoney } from "@/components/forms/InputMoney";
+import { MoneyField } from "@/components/forms/MoneyField";
 import { SubmitButton } from "@/components/forms/SubmitButton";
-import { Label } from "@/components/ui/label";
 import { getFormError } from "@/lib/form";
 import { formatCurrency } from "@/lib/format";
 import type { ActionResult } from "@/lib/types";
@@ -77,13 +76,15 @@ export function RecordPaymentDialog({
               <AlertDescription>{formError}</AlertDescription>
             </Alert>
           )}
-          <Label className="flex flex-col items-start gap-1.5">
-            Số tiền trả (₫)
-            <InputMoney value={amountPaid} onChange={setAmountPaid} name="amountPaid" min={1} required />
-          </Label>
-          {fieldErrors?.amountPaid?.[0] && (
-            <p className="text-xs text-destructive">{fieldErrors.amountPaid[0]}</p>
-          )}
+          <MoneyField
+            label="Số tiền trả (₫)"
+            name="amountPaid"
+            value={amountPaid}
+            onChange={setAmountPaid}
+            min={1}
+            required
+            error={fieldErrors?.amountPaid?.[0]}
+          />
           <Field
             label="Ngày trả"
             name="paidDate"
