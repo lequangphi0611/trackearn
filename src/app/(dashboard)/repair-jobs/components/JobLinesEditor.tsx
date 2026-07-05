@@ -106,6 +106,7 @@ export function JobLinesEditor({
                   value={line.unitPrice}
                   onChange={(v) => update(i, { unitPrice: v })}
                   placeholder="Giá bán"
+                  showChip={false}
                 />
               </div>
             </div>

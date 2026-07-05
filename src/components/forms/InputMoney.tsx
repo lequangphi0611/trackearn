@@ -23,6 +23,8 @@ export type InputMoneyProps = {
   min?: number;
   /** Chặn cứng từng keystroke — gõ thêm digit chỉ tăng độ lớn nên an toàn để chặn ngay. */
   max?: number;
+  /** Ẩn chip ×1000 — dùng cho context dày đặc/lặp (vd dòng trong bảng) nơi chip phá layout thẳng hàng. Mặc định true. */
+  showChip?: boolean;
   className?: string;
 };
 
@@ -118,6 +120,7 @@ export const InputMoney = ({
   allowNegative = false,
   min,
   max,
+  showChip = true,
   className,
 }: InputMoneyProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -277,16 +280,19 @@ export const InputMoney = ({
         <span className="shrink-0 text-sm text-muted-foreground tabular">₫</span>
       </div>
       {name && <input type="hidden" name={name} value={value !== undefined ? String(value) : ""} />}
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        disabled={chipDisabled}
-        onClick={applyChip}
-        className="h-11 min-w-11 self-start px-3"
-      >
-        {formatCurrency(chipTarget)}
-      </Button>
+      {showChip && (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={chipDisabled}
+          onClick={applyChip}
+          className="h-11 min-w-11 gap-1.5 self-start px-3"
+        >
+          <span className="text-xs text-muted-foreground">×1000</span>
+          {formatCurrency(chipTarget)}
+        </Button>
+      )}
     </div>
   );
 };
