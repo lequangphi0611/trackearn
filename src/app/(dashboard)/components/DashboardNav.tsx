@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "@/components/ui/menu";
-import { TRANSACTION_LINES } from "@/lib/transaction-lines";
+import { TRANSACTION_LINES, getLineHubHref } from "@/lib/transaction-lines";
 
 function linkClass(active: boolean) {
   return cn(
@@ -44,7 +44,7 @@ export function DashboardNav({ isOwner }: { isOwner: boolean }) {
           {TRANSACTION_LINES.map((l) => (
             <MenuItem
               key={l.slug}
-              render={<Link href={`/transactions/${l.slug}`} />}
+              render={<Link href={getLineHubHref(l.slug)} />}
             >
               {l.label}
             </MenuItem>

@@ -4,16 +4,28 @@ import { getExpenseCategories } from "@/queries/expense-categories";
 import { getInStockDevicesForPicker } from "@/queries/devices";
 import { vnDateTimeLocal, vnTodayISODate } from "@/lib/date";
 import { TransactionForm } from "../../components/TransactionForm";
-import { DeviceTransactionForm } from "../../components/DeviceTransactionForm";
+import {
+  DeviceTransactionForm,
+  type DeviceTransactionMode,
+} from "../../components/DeviceTransactionForm";
+
+function parseMode(v: string | undefined): DeviceTransactionMode | undefined {
+  return v === "sell" || v === "income" || v === "expense" ? v : undefined;
+}
 
 export default async function NewTransactionPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ line: string }>;
+  searchParams: Promise<{ mode?: string }>;
 }) {
   const { line } = await params;
   const config = getTransactionLine(line);
   if (!config) notFound();
+
+  const sp = await searchParams;
+  const defaultMode = parseMode(sp.mode);
 
   const [categories, devices] = await Promise.all([
     getExpenseCategories(),
@@ -31,6 +43,7 @@ export default async function NewTransactionPage({
           categories={categories}
           defaultDateTime={vnDateTimeLocal()}
           defaultDate={vnTodayISODate()}
+          defaultMode={defaultMode}
         />
       ) : (
         <TransactionForm

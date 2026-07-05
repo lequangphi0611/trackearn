@@ -41,13 +41,24 @@ Skill `verify-app` đọc file này trước khi grep source. Bổ sung dần m�
 ### BottomNav (điều hướng mobile)
 - route: không phải 1 route — component cố định `fixed inset-x-0 bottom-0`, render trong `layout.tsx` nên có mặt ở MỌI trang dashboard, nhưng container có class `sm:hidden` → chỉ hiện khi viewport < 640px (Tailwind `sm`). Desktop dùng `DashboardNav` (thanh ngang ở header, `hidden sm:flex`).
 - mô tả: 5 slot `Tổng quan(/)` · `Giao dịch(/transactions)` · **FAB "+" nhô giữa** · `Công nợ(/debts)` · `Kho`. Tab active theo `pathname` qua hàm `match()` riêng từng tab, hiện `aria-current="page"` + icon đổi màu `text-brand`. Tab "Kho" active xuyên CẢ `/kho`, `/devices`, `/spare-parts` (1 tab dùng chung cho hub hàng hoá, tránh phải thêm tab mới mỗi mảng).
-- FAB (giữa) hành vi rẽ nhánh theo trang: nếu đang ở `/` → click mở thẳng `QuickEntryDialog` (qua `useQuickEntryStore.open()`, cùng dialog với nút "Nhập giao dịch" đầu trang dashboard — tránh 2 lối vào khác hành vi). Nếu KHÔNG ở `/` (dialog không được mount ở trang đó) → click mở `Menu` (base-ui) liệt kê 4 mảng giao dịch (`TRANSACTION_LINES`: Xe múc/Thiết bị điện tử/Phụ kiện/Chi phí chung) + "Job sửa xe múc", mỗi mục là link điều hướng sang `/transactions/<slug>/new` hoặc `/repair-jobs/new`.
+- FAB (giữa) hành vi rẽ nhánh theo trang: nếu đang ở `/` → click mở thẳng `QuickEntryDialog` (qua `useQuickEntryStore.open()`, cùng dialog với nút "Nhập giao dịch" đầu trang dashboard — tránh 2 lối vào khác hành vi). Nếu KHÔNG ở `/` (dialog không được mount ở trang đó) → click mở `Menu` (base-ui) liệt kê 4 mảng giao dịch (`TRANSACTION_LINES`). Từ issue #12 (2026-07-05): mỗi mục dùng `getQuickEntryHref(slug)` (`src/lib/transaction-lines.ts`) thay vì luôn `/transactions/<slug>/new` — Xe múc và Thiết bị điện tử dẫn vào HUB (`/transactions/xe-muc`, `/devices`) để chọn tiếp, KHÔNG còn mục "Job sửa xe múc" rời (đã gộp vào 2 CTA trên hub `/transactions/xe-muc`); Phụ kiện/Chi phí chung vẫn tạo thẳng `/transactions/<slug>/new`.
 - không gác quyền theo role (không nhận prop `isOwner`) — hiện như nhau cho owner/staff; các route đích (`/debts`, `/kho`, v.v.) cũng không tự gác role ở page.tsx.
 - ⚠️ lệch tài liệu: `docs/rules/ui-design.md` §Điều hướng mobile mô tả tab phải là "Cài đặt" nhưng code hiện tại (`BottomNav.tsx`) là **"Kho"** — doc có vẻ đã cũ so với code, chưa xác nhận cái nào là chủ đích đúng.
 - đi tới từ: có mặt ở mọi trang dashboard (trong `layout.tsx`)
-- đi tới: `/`, `/transactions`, `/debts`, `/kho` (và `/devices`, `/spare-parts` cùng active), `/transactions/<line>/new`, `/repair-jobs/new`
+- đi tới: `/`, `/transactions`, `/debts`, `/kho` (và `/devices`, `/spare-parts` cùng active), `/transactions/xe-muc`, `/devices`, `/transactions/<line>/new` (phụ kiện/chi phí chung)
 - src: src/app/(dashboard)/components/BottomNav.tsx, layout.tsx, src/lib/quick-entry-store.ts, components/dashboard/QuickEntryDialog.tsx, src/lib/transaction-lines.ts
-- verified: 410aa26 (commit cuối chạm BottomNav.tsx; các file trên không nằm trong working-tree diff tại lúc verify 2026-07-04)
+- verified: 2026-07-05 (issue #12 entry-point unification; uncommitted tại lúc verify)
+
+### DashboardNav (điều hướng desktop) + hub CTA (issue #12)
+- route: không phải 1 route — thanh ngang ở header, `hidden sm:flex` (chỉ desktop ≥640px). Mobile dùng `BottomNav`.
+- mô tả: `Tổng quan(/)` · dropdown `Giao dịch` (base-ui Menu, liệt kê `TRANSACTION_LINES`) · `Công nợ(/debts)` · `Kho(/kho)` · `Báo cáo` (owner only). Từ issue #12 (2026-07-05): mỗi mục trong dropdown "Giao dịch" dùng `getLineHubHref(slug)` — Thiết bị điện tử dẫn tới `/devices` (KHÔNG còn `/transactions/thiet-bi`), các mảng khác (xe-muc/phu-kien/chi-phi-chung) vẫn `/transactions/<slug>`.
+- Hub CTA mới cùng đợt: `/transactions/xe-muc` có 2 `HubCard` đầu trang ("Tạo job sửa máy" → `/repair-jobs/new`, "Nhập thu / chi" → `/transactions/xe-muc/new`); `/devices` có 3 `HubCard` ("Nhập máy mới" → `/devices/new`, "Bán máy từ kho" → `/transactions/thiet-bi/new?mode=sell`, "Thu / Chi khác" → `/transactions/thiet-bi/new?mode=income`). `HubCard` dùng chung `src/app/(dashboard)/components/HubCard.tsx` (trước đó chỉ định nghĩa riêng trong `kho/page.tsx`, đã tách ra dùng chung 3 nơi).
+- `/transactions/[line]/new?mode=sell|income|expense` (mới): chỉ có ý nghĩa với `hasDevicePicker` line (hiện chỉ `thiet-bi`) — preset tab active của `DeviceTransactionForm` (`SegmentedToggle` Bán máy/Thu khác/Chi phí), không đổi hành vi nếu bỏ qua param.
+- ⚠️ base-ui Menu dropdown "Giao dịch" có thể chậm mở nội dung dưới tải cao (2 worker/full-suite Playwright) — xem ERROR.md "DashboardNav Giao dịch dropdown — menuitem không resolve trong 30s".
+- đi tới từ: có mặt ở mọi trang dashboard (trong `layout.tsx`, chỉ hiện `sm:flex`)
+- đi tới: `/`, `/transactions/<slug>` (xe-muc/phu-kien/chi-phi-chung), `/devices` (thiet-bi), `/debts`, `/kho`, `/reports` (owner)
+- src: src/app/(dashboard)/components/DashboardNav.tsx, src/lib/transaction-lines.ts (getLineHubHref/getQuickEntryHref), src/app/(dashboard)/components/HubCard.tsx, src/app/(dashboard)/transactions/[line]/page.tsx, src/app/(dashboard)/devices/page.tsx, src/app/(dashboard)/transactions/[line]/new/page.tsx, src/app/(dashboard)/transactions/components/DeviceTransactionForm.tsx
+- verified: 2026-07-05 (issue #12; uncommitted tại lúc verify)
 
 ### Thêm phụ tùng mới (Spare part — new)
 - route: `/spare-parts/new`

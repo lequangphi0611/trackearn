@@ -1,11 +1,12 @@
 import { cn } from "@/lib/utils";
 import { Suspense } from "react";
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Plus, PackagePlus, HandCoins, Receipt } from "lucide-react";
 import type { DeviceFilters, DeviceStatusFilter } from "@/queries/devices";
 import { getStockCapital } from "@/queries/devices";
 import { formatCurrency } from "@/lib/format";
 import { buttonVariants } from "@/components/ui/button";
+import { HubCard } from "../components/HubCard";
 import { DeviceFilters as Filters } from "./components/DeviceFilters";
 import { DeviceResults } from "./components/DeviceResults";
 import { DeviceListSkeleton } from "./components/DeviceListSkeleton";
@@ -58,6 +59,28 @@ export default async function DevicesPage({
           <Plus />
           Nhập máy
         </Link>
+      </div>
+
+      {/* Hub duy nhất cho thiết bị (menu "+" dẫn thẳng vào đây) — issue #12:
+          gộp 3 luồng nhập máy / bán máy / thu-chi khác từng rời rạc. */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <HubCard href="/devices/new" icon={<PackagePlus className="size-5" />} title="Nhập máy mới">
+          Mua máy, lưu vào kho
+        </HubCard>
+        <HubCard
+          href="/transactions/thiet-bi/new?mode=sell"
+          icon={<HandCoins className="size-5" />}
+          title="Bán máy từ kho"
+        >
+          Chọn máy trong kho để bán
+        </HubCard>
+        <HubCard
+          href="/transactions/thiet-bi/new?mode=income"
+          icon={<Receipt className="size-5" />}
+          title="Thu / Chi khác"
+        >
+          Sửa chữa, phụ kiện, chi phí...
+        </HubCard>
       </div>
 
       <div className="rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm">

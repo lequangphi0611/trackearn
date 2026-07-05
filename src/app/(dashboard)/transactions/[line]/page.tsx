@@ -2,9 +2,10 @@ import { cn } from "@/lib/utils";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Plus, Wrench, Receipt } from "lucide-react";
 import { getTransactionLine } from "@/lib/transaction-lines";
 import { buttonVariants } from "@/components/ui/button";
+import { HubCard } from "../../components/HubCard";
 import { TransactionFilters as Filters } from "../components/TransactionFilters";
 import { TransactionResults } from "../components/TransactionResults";
 import { TransactionListSkeleton } from "../components/TransactionListSkeleton";
@@ -37,6 +38,19 @@ export default async function TransactionListPage({
           Nhập
         </Link>
       </div>
+
+      {/* Xe múc gộp 2 entry point (job sửa máy vs. thu/chi trực tiếp) từng rời
+          rạc trong menu "+" thành 1 hub — issue #12. */}
+      {line === "xe-muc" && (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <HubCard href="/repair-jobs/new" icon={<Wrench className="size-5" />} title="Tạo job sửa máy">
+            Sửa máy cho khách, xuất phụ tùng từ kho
+          </HubCard>
+          <HubCard href="/transactions/xe-muc/new" icon={<Receipt className="size-5" />} title="Nhập thu / chi">
+            Nhiên liệu, lương, doanh thu cho thuê...
+          </HubCard>
+        </div>
+      )}
 
       <TransactionLineTabs active={line} searchParams={sp} />
 

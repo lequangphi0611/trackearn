@@ -83,3 +83,11 @@ Skill `verify-app` tra file này để tái dùng spec cũ thay vì dựng lại
 - kịch bản chứng minh: tạo 10 cái @100.000 → giá vốn 100.000; nhập thêm 30 @200.000 → BQGQ = round((10·100000+30·200000)/40) = **175.000** (≠ TB cộng 150.000), tồn 40. Screenshot ở verify-env/screenshots/bqgq/.
 - ⚠️ DỌN DẸP sau chạy (transaction dính vào T7 phá baseline reports):
   `DELETE FROM transactions WHERE note LIKE 'Nhập phụ tùng: BQGQ Test %'; DELETE FROM spare_parts WHERE name LIKE 'BQGQ Test %';`
+
+### Issue #12 — hợp nhất entry point Xe múc & Thiết bị điện tử (menu "+" / Giao dịch dropdown → hub)
+- spec: verify-env/tests/issue-12-entry-points.tmp.spec.ts (đọc-chỉ-điều-hướng, không ghi DB — an toàn chạy lại nhiều lần)
+- màn hình: BottomNav, DashboardNav, Transactions list (`/transactions/xe-muc`), Devices (`/devices`), New transaction (`/transactions/[line]/new?mode=`) — xem system-map "BottomNav" + "DashboardNav (điều hướng desktop) + hub CTA"
+- src: BottomNav.tsx, DashboardNav.tsx, HubCard.tsx, transaction-lines.ts (getQuickEntryHref/getLineHubHref), transactions/[line]/page.tsx, transactions/[line]/new/page.tsx, devices/page.tsx, DeviceTransactionForm.tsx
+- verified: 2026-07-05 (13/15 pass ổn định; 2 lần fail là flakiness base-ui Menu dưới tải song song — pass 100% khi chạy riêng, xem ERROR.md; uncommitted tại lúc verify)
+- kịch bản: (1) FAB "+" (mobile, trang khác `/`) chỉ còn 1 mục "Xe múc" (không còn "Job sửa xe múc" rời), click → `/transactions/xe-muc` hiện đúng 2 HubCard "Tạo job sửa máy"/"Nhập thu / chi", mỗi CTA điều hướng đúng route; (2) FAB "Thiết bị điện tử" → `/devices`, hiện đủ 3 HubCard, "Bán máy từ kho" → `/transactions/thiet-bi/new?mode=sell` preset đúng tab "Bán máy trong kho" (verify bằng class `bg-primary` của Button trong SegmentedToggle — component KHÔNG dùng role="radio"), "Thu / Chi khác" → `?mode=income` preset tab "Thu khác"; (3) DashboardNav dropdown "Giao dịch" → "Thiết bị điện tử" đi `/devices`, "Xe múc" vẫn đi hub `/transactions/xe-muc`; (4) route cũ vẫn sống: `/repair-jobs`, `/transactions/thiet-bi`, `/devices/new`.
+- ⚠️ locator "Giao dịch" phải `exact:true` (khớp nhầm nút "Nhập giao dịch" nếu không) — xem ERROR.md.

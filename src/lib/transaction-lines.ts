@@ -51,3 +51,16 @@ export function getLineByBusinessLine(
 ): TransactionLine | undefined {
   return TRANSACTION_LINES.find((line) => line.businessLine === businessLine);
 }
+
+// Hub duy nhất mỗi mảng (issue #12): thiết bị dùng /devices (kho) làm hub
+// thay vì trang danh sách giao dịch riêng; các mảng khác vẫn là chính nó.
+export function getLineHubHref(slug: string): string {
+  return slug === "thiet-bi" ? "/devices" : `/transactions/${slug}`;
+}
+
+// Entry point cho menu "+" (tạo nhanh): xe múc và thiết bị dẫn vào hub để
+// người dùng chọn muốn làm gì trước, các mảng còn lại tạo thẳng.
+export function getQuickEntryHref(slug: string): string {
+  if (slug === "xe-muc" || slug === "thiet-bi") return getLineHubHref(slug);
+  return `/transactions/${slug}/new`;
+}

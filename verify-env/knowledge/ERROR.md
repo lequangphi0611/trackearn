@@ -67,6 +67,12 @@ chứng minh fix làm test **pass**, không ghi phỏng đoán.
 - ⚠️ Nếu gặp lỗi này trong lúc verify 1 flow MỚI (chưa biết là bug hay chưa): đừng vội sửa spec cho qua (vd thêm `.first()` để né) — kiểm tra trước xem có phải bug app thật không (đọc effect deps của component liên quan) trước khi coi đây chỉ là vấn đề của spec.
 - ngày: 2026-07-04
 
+### DashboardNav "Giao dịch" dropdown — menuitem không resolve trong 30s khi chạy full suite / 2 worker
+- triệu chứng: `page.getByRole('button',{name:'Giao dịch',exact:true}).click()` xong, `page.getByRole('menuitem',{name:...}).click()` timeout 30s dù menu đã mở (`[active]` trên button trong ARIA snapshot lúc fail) — snapshot lúc fail KHÔNG thấy nội dung menu nào cả. Chỉ tái hiện ngẫu nhiên (không cố định item nào) khi chạy CẢ file spec (2 worker) hoặc CẢ suite lớn cùng lúc; chạy RIÊNG test đó (`-g "<tên test>"`, 1 worker) pass 100% nhiều lần liên tiếp.
+- nguyên nhân: cùng họ với "server action/route compile lần đầu dưới `pnpm dev` > timeout mặc định" — dev server (Turbopack) bận biên dịch/serve nhiều request đồng thời từ 2 worker/nhiều spec chạy song song, khiến animation mount của base-ui Menu (hoặc chính request/hydrate) chậm vượt quá thời gian mong đợi trong lúc tải cao. KHÔNG tái hiện khi chạy đơn lẻ → không phải bug ở component Menu hay ở logic điều hướng.
+- cách fix: khi verify 1 flow cụ thể liên quan `DashboardNav`/Menu base-ui, chạy RIÊNG spec đó (`--project=<x> -g "<tên test>"`) thay vì cả suite để tránh nhiễu; nếu cần chạy chung, tăng timeout test đó hoặc thêm `await page.getByRole('menu').waitFor()` trước khi click item.
+- ngày: 2026-07-05
+
 ### write-flow làm đỏ spec số tuyệt đối (dirty-data pollution)
 - triệu chứng: reports.spec.ts bỗng đỏ, T7/2026 expense nhận "13.500.000"/"19.500.000" thay vì 12.500.000, dù không sửa gì màn Báo cáo.
 - nguyên nhân: đồng hồ server ĐANG là 2026-07 (thật). Spec ghi (bqgq-restock) tạo transaction `transactedAt = new Date()` → rơi vào T7 → cộng vào tổng chi phí T7 mà reports.spec assert tuyệt đối. Chạy cùng suite 2 worker còn tạo race (đọc giữa 2 lần insert → thấy số lưng chừng).
