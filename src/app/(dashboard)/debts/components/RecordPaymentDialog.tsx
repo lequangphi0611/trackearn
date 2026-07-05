@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Field } from "@/components/forms/Field";
+import { MoneyField } from "@/components/forms/MoneyField";
 import { SubmitButton } from "@/components/forms/SubmitButton";
 import { getFormError } from "@/lib/form";
 import { formatCurrency } from "@/lib/format";
@@ -35,6 +36,7 @@ export function RecordPaymentDialog({
   const [open, setOpen] = useState(false);
   const [state, setState] = useState<ActionResult | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [amountPaid, setAmountPaid] = useState<number | undefined>(undefined);
 
   useEffect(() => {
     if (state?.success) {
@@ -74,12 +76,12 @@ export function RecordPaymentDialog({
               <AlertDescription>{formError}</AlertDescription>
             </Alert>
           )}
-          <Field
+          <MoneyField
             label="Số tiền trả (₫)"
             name="amountPaid"
-            type="number"
-            inputMode="numeric"
-            min="1"
+            value={amountPaid}
+            onChange={setAmountPaid}
+            min={1}
             required
             error={fieldErrors?.amountPaid?.[0]}
           />

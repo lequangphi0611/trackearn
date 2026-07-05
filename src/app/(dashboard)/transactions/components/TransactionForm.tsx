@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Field } from "@/components/forms/Field";
+import { MoneyField } from "@/components/forms/MoneyField";
 import { SegmentedToggle } from "@/components/forms/SegmentedToggle";
 import { SubmitButton } from "@/components/forms/SubmitButton";
 import { getFormError } from "@/lib/form";
@@ -42,9 +43,9 @@ export function TransactionForm({
   const [state, setState] = useState<ActionResult<{ id: string }> | null>(null);
   const [isPending, startTransition] = useTransition();
   const [type, setType] = useState<"income" | "expense">(lockType ?? "income");
-  const [amount, setAmount] = useState("");
+  const [amount, setAmount] = useState<number | undefined>(undefined);
   const [payLater, setPayLater] = useState(false);
-  const [paid, setPaid] = useState("");
+  const [paid, setPaid] = useState<number | undefined>(undefined);
 
   // Ref giữ onSuccess mới nhất — effect chỉ phụ thuộc `state`. onSuccess là
   // closure mới mỗi lần cha (vd QuickEntryDialog/DeviceTransactionForm) render
@@ -85,7 +86,7 @@ export function TransactionForm({
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <input type="hidden" name="line" value={line} />
       <input type="hidden" name="type" value={type} />
-      <input type="hidden" name="paidAmount" value={paidAmount} />
+      <input type="hidden" name="paidAmount" value={paidAmount ?? ""} />
 
       {formError && (
         <Alert variant="destructive">
@@ -100,15 +101,12 @@ export function TransactionForm({
         </div>
       )}
 
-      <Field
+      <MoneyField
         label="Số tiền (₫)"
         name="amount"
-        type="number"
-        inputMode="numeric"
-        min="0"
-        required
         value={amount}
-        onChange={(e) => setAmount(e.target.value)}
+        onChange={setAmount}
+        required
         error={fieldErrors?.amount?.[0]}
       />
 
@@ -138,14 +136,10 @@ export function TransactionForm({
 
       {payLater && (
         <>
-          <Field
+          <MoneyField
             label="Đã trả (₫)"
-            name="paidVisible"
-            type="number"
-            inputMode="numeric"
-            min="0"
             value={paid}
-            onChange={(e) => setPaid(e.target.value)}
+            onChange={setPaid}
             error={fieldErrors?.paidAmount?.[0]}
           />
           <Field

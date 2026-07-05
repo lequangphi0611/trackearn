@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Field } from "@/components/forms/Field";
+import { MoneyField } from "@/components/forms/MoneyField";
 import { SubmitButton } from "@/components/forms/SubmitButton";
 import { getFormError } from "@/lib/form";
 import { createDevice } from "../actions";
@@ -13,9 +14,9 @@ import { ConditionNoteField } from "./ConditionNoteField";
 export function DeviceForm({ defaultDate }: { defaultDate: string }) {
   const router = useRouter();
   const [state, formAction] = useActionState(createDevice, null);
-  const [buyPrice, setBuyPrice] = useState("");
+  const [buyPrice, setBuyPrice] = useState<number | undefined>(undefined);
   const [payLater, setPayLater] = useState(false);
-  const [paid, setPaid] = useState("");
+  const [paid, setPaid] = useState<number | undefined>(undefined);
 
   useEffect(() => {
     if (state?.success) {
@@ -30,7 +31,7 @@ export function DeviceForm({ defaultDate }: { defaultDate: string }) {
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
-      <input type="hidden" name="paidAmount" value={paidAmount} />
+      <input type="hidden" name="paidAmount" value={paidAmount ?? ""} />
 
       {formError && (
         <Alert variant="destructive">
@@ -40,15 +41,12 @@ export function DeviceForm({ defaultDate }: { defaultDate: string }) {
 
       <Field label="Tên máy" name="name" required error={fieldErrors?.name?.[0]} />
       <ConditionNoteField error={fieldErrors?.conditionNote?.[0]} />
-      <Field
+      <MoneyField
         label="Giá mua (₫)"
         name="buyPrice"
-        type="number"
-        inputMode="numeric"
-        min="0"
-        required
         value={buyPrice}
-        onChange={(e) => setBuyPrice(e.target.value)}
+        onChange={setBuyPrice}
+        required
         error={fieldErrors?.buyPrice?.[0]}
       />
       <Field
@@ -73,14 +71,10 @@ export function DeviceForm({ defaultDate }: { defaultDate: string }) {
 
       {payLater && (
         <>
-          <Field
+          <MoneyField
             label="Đã trả (₫)"
-            name="paidVisible"
-            type="number"
-            inputMode="numeric"
-            min="0"
             value={paid}
-            onChange={(e) => setPaid(e.target.value)}
+            onChange={setPaid}
             error={fieldErrors?.paidAmount?.[0]}
           />
           <Field

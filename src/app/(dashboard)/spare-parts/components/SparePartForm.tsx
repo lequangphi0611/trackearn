@@ -1,10 +1,11 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Field } from "@/components/forms/Field";
+import { MoneyField } from "@/components/forms/MoneyField";
 import { SubmitButton } from "@/components/forms/SubmitButton";
 import { getFormError } from "@/lib/form";
 import { createOrRestockSparePart } from "../actions";
@@ -12,6 +13,7 @@ import { createOrRestockSparePart } from "../actions";
 export function SparePartForm() {
   const router = useRouter();
   const [state, formAction] = useActionState(createOrRestockSparePart, null);
+  const [buyPrice, setBuyPrice] = useState<number | undefined>(undefined);
 
   useEffect(() => {
     if (state?.success) {
@@ -41,12 +43,11 @@ export function SparePartForm() {
         required
         error={fieldErrors?.quantity?.[0]}
       />
-      <Field
+      <MoneyField
         label="Giá nhập / đơn vị (₫)"
         name="buyPrice"
-        type="number"
-        inputMode="numeric"
-        min="0"
+        value={buyPrice}
+        onChange={setBuyPrice}
         required
         error={fieldErrors?.buyPrice?.[0]}
       />

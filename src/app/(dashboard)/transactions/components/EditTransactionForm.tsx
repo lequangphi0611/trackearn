@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Field } from "@/components/forms/Field";
+import { MoneyField } from "@/components/forms/MoneyField";
 import { SubmitButton } from "@/components/forms/SubmitButton";
 import { Button } from "@/components/ui/button";
 import {
@@ -55,7 +56,7 @@ export function EditTransactionForm({
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const [state, formAction] = useActionState(updateTransaction, null);
-  const [amount, setAmount] = useState(String(initialAmount));
+  const [amount, setAmount] = useState<number | undefined>(initialAmount);
   const [confirmed, setConfirmed] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
@@ -70,7 +71,7 @@ export function EditTransactionForm({
   }, [state, router, line]);
 
   const { fieldErrors, formError } = getFormError(state);
-  const needsConfirm = debt !== null && Number(amount) < debt.paid;
+  const needsConfirm = debt !== null && (amount ?? 0) < debt.paid;
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     if (needsConfirm && !confirmed) {
@@ -97,15 +98,12 @@ export function EditTransactionForm({
           </Alert>
         )}
 
-        <Field
+        <MoneyField
           label="Số tiền (₫)"
           name="amount"
-          type="number"
-          inputMode="numeric"
-          min="0"
-          required
           value={amount}
-          onChange={(e) => setAmount(e.target.value)}
+          onChange={setAmount}
+          required
           error={fieldErrors?.amount?.[0]}
         />
 

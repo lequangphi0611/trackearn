@@ -5,18 +5,12 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Field } from "@/components/forms/Field";
+import { MoneyField } from "@/components/forms/MoneyField";
 import { SubmitButton } from "@/components/forms/SubmitButton";
 import { getFormError } from "@/lib/form";
 import { formatCurrency } from "@/lib/format";
 import { updateRepairJob } from "../actions";
-import { JobLinesEditor, type LineDraft, type PickerPart } from "./JobLinesEditor";
-
-function partsTotal(lines: LineDraft[]): number {
-  return lines.reduce((s, l) => s + Math.round(Number(l.quantity || 0) * Number(l.unitPrice || 0)), 0);
-}
-function cleanLines(lines: LineDraft[]) {
-  return lines.filter((l) => l.sparePartId && Number(l.quantity) > 0);
-}
+import { JobLinesEditor, partsTotal, cleanLines, type LineDraft, type PickerPart } from "./JobLinesEditor";
 
 export function EditJobForm({
   id,
@@ -38,7 +32,7 @@ export function EditJobForm({
   const router = useRouter();
   const [state, formAction] = useActionState(updateRepairJob, null);
   const [lines, setLines] = useState<LineDraft[]>(initialLines);
-  const [laborFee, setLaborFee] = useState(String(initialLabor));
+  const [laborFee, setLaborFee] = useState<number | undefined>(initialLabor);
 
   useEffect(() => {
     if (state?.success) {
@@ -50,7 +44,7 @@ export function EditJobForm({
     }
   }, [state, router, id]);
 
-  const total = useMemo(() => partsTotal(lines) + Number(laborFee || 0), [lines, laborFee]);
+  const total = useMemo(() => partsTotal(lines) + (laborFee ?? 0), [lines, laborFee]);
   const { fieldErrors, formError } = getFormError(state);
 
   return (
@@ -69,14 +63,11 @@ export function EditJobForm({
 
       <JobLinesEditor parts={parts} value={lines} onChange={setLines} />
 
-      <Field
+      <MoneyField
         label="Tiền công (₫)"
         name="laborFee"
-        type="number"
-        inputMode="numeric"
-        min="0"
         value={laborFee}
-        onChange={(e) => setLaborFee(e.target.value)}
+        onChange={setLaborFee}
         error={fieldErrors?.laborFee?.[0]}
       />
 
