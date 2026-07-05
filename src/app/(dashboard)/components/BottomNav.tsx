@@ -5,8 +5,8 @@ import { usePathname } from "next/navigation";
 import { House, Receipt, HandCoins, Boxes, Plus } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger } from "@/components/ui/menu";
-import { TRANSACTION_LINES } from "@/lib/transaction-lines";
+import { Menu, MenuContent, MenuItem, MenuTrigger } from "@/components/ui/menu";
+import { TRANSACTION_LINES, getQuickEntryHref } from "@/lib/transaction-lines";
 import { useQuickEntryStore } from "@/lib/quick-entry-store";
 
 type Tab = {
@@ -36,6 +36,9 @@ const RIGHT: Tab[] = [
   {
     // Hub hàng hoá: Thiết bị nay, Phụ tùng (Phase 3b) sau — tab active xuyên các
     // route kho để không phải thêm tab mới mỗi mảng.
+    // /devices vừa là trang duyệt kho vừa là hub tạo giao dịch thiết bị (issue
+    // #12) — nội dung trang thực chất LÀ trang Kho cộng thêm 3 HubCard, nên
+    // tab "Kho" sáng khi ở /devices là chủ đích, KHÔNG phải bug.
     href: "/kho",
     label: "Kho",
     icon: Boxes,
@@ -106,13 +109,11 @@ export function BottomNav() {
                 {TRANSACTION_LINES.map((l) => (
                   <MenuItem
                     key={l.slug}
-                    render={<Link href={`/transactions/${l.slug}/new`} />}
+                    render={<Link href={getQuickEntryHref(l)} />}
                   >
                     {l.label}
                   </MenuItem>
                 ))}
-                <MenuSeparator className="my-1 h-px bg-border" />
-                <MenuItem render={<Link href="/repair-jobs/new" />}>Job sửa xe múc</MenuItem>
               </MenuContent>
             </Menu>
           )}

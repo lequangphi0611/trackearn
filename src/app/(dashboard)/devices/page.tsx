@@ -1,14 +1,17 @@
-import { cn } from "@/lib/utils";
 import { Suspense } from "react";
-import Link from "next/link";
-import { Plus } from "lucide-react";
+import { PackagePlus, HandCoins, Receipt } from "lucide-react";
 import type { DeviceFilters, DeviceStatusFilter } from "@/queries/devices";
 import { getStockCapital } from "@/queries/devices";
 import { formatCurrency } from "@/lib/format";
-import { buttonVariants } from "@/components/ui/button";
+import { getTransactionLine } from "@/lib/transaction-lines";
+import { HubCard } from "../components/HubCard";
 import { DeviceFilters as Filters } from "./components/DeviceFilters";
 import { DeviceResults } from "./components/DeviceResults";
 import { DeviceListSkeleton } from "./components/DeviceListSkeleton";
+
+// "thiet-bi" là slug của mảng Thiết bị điện tử (src/lib/transaction-lines.ts)
+// — đọc qua getTransactionLine thay vì hardcode chuỗi trong 2 href dưới.
+const deviceLine = getTransactionLine("thiet-bi")!;
 
 type SearchParams = {
   status?: string;
@@ -52,12 +55,30 @@ export default async function DevicesPage({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between gap-2">
-        <h1 className="text-lg font-semibold">Kho thiết bị</h1>
-        <Link href="/devices/new" className={cn(buttonVariants({ size: "sm" }), "max-sm:h-10")}>
-          <Plus />
-          Nhập máy
-        </Link>
+      <h1 className="text-lg font-semibold">Kho thiết bị</h1>
+
+      {/* Hub duy nhất cho thiết bị (menu "+" dẫn thẳng vào đây) — issue #12:
+          gộp 3 luồng nhập máy / bán máy / thu-chi khác từng rời rạc. HubCard
+          "Nhập máy mới" đã là entry point chính nên KHÔNG còn nút "Nhập máy"
+          trùng đích ở header. */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <HubCard href="/devices/new" icon={<PackagePlus className="size-5" />} title="Nhập máy mới">
+          Mua máy, lưu vào kho
+        </HubCard>
+        <HubCard
+          href={`/transactions/${deviceLine.slug}/new?mode=sell`}
+          icon={<HandCoins className="size-5" />}
+          title="Bán máy từ kho"
+        >
+          Chọn máy trong kho để bán
+        </HubCard>
+        <HubCard
+          href={`/transactions/${deviceLine.slug}/new?mode=income`}
+          icon={<Receipt className="size-5" />}
+          title="Thu / Chi khác"
+        >
+          Sửa chữa, phụ kiện, chi phí...
+        </HubCard>
       </div>
 
       <div className="rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm">

@@ -67,6 +67,18 @@ chứng minh fix làm test **pass**, không ghi phỏng đoán.
 - ⚠️ Nếu gặp lỗi này trong lúc verify 1 flow MỚI (chưa biết là bug hay chưa): đừng vội sửa spec cho qua (vd thêm `.first()` để né) — kiểm tra trước xem có phải bug app thật không (đọc effect deps của component liên quan) trước khi coi đây chỉ là vấn đề của spec.
 - ngày: 2026-07-04
 
+### Menu base-ui (BottomNav FAB / DashboardNav "Giao dịch") — menuitem không resolve trong 30s, ngẫu nhiên
+- triệu chứng: `getByRole('button',{name:...}).click()` xong, `getByRole('menuitem'|'menu',{...}).click()` timeout 30s dù trigger đã `[active]`/`aria-expanded=true` trong ARIA snapshot lúc fail — snapshot KHÔNG thấy nội dung menu. Chỉ tái hiện NGẪU NHIÊN, không gắn với 1 item/trang cố định (đã thấy ở cả "Thiết bị điện tử" lẫn "Xe múc", cả `BottomNav` FAB lẫn `DashboardNav` dropdown). Tỉ lệ fail giảm rõ khi chạy đơn lẻ (`-g "<tên test>"`, 1 worker) nhưng **KHÔNG về 0%** — đã đo thực tế ~1/3 lần vẫn fail dù chỉ chạy 1 test/1 worker, không có test nào khác chạy cùng.
+- nguyên nhân: chưa xác định chắc chắn root cause (không chỉ do tải song song như nghi ban đầu — vì vẫn fail cả khi cô lập hoàn toàn). Nghi vấn: animation mount/positioning của base-ui `Menu.Popup` (Floating UI) đôi khi chậm hơn timeout mặc định của Playwright `click()` ngay sau navigation/hydrate, không liên quan tới logic điều hướng hay dữ liệu (URL đích luôn đúng khi pass).
+- cách fix: đây là flakiness CỦA HẠ TẦNG TEST (base-ui Menu + Playwright timing), KHÔNG PHẢI bug app — khi thấy fail đúng pattern này (menuitem/menu timeout ngay sau khi trigger đã mở), retry lại (`--retries=1` hoặc chạy lại thủ công) trước khi kết luận là bug thật; nếu cần chắc chắn, thêm `await page.getByRole('menu').waitFor({state:'visible'})` trước khi thao tác trên `menuitem` để tách bạch "menu có mở được không" khỏi "item có đúng không".
+- ngày: 2026-07-05 (xác nhận lại issue #12 round 2 — cùng pattern round 1, không phải regression)
+
+### "Nhập giao dịch" — 2 phần tử CÙNG accessible name (không phải substring) trên trang chủ mobile
+- triệu chứng: `page.getByRole('button',{name:'Nhập giao dịch'}).click()` trên `/` (mobile viewport) báo strict-mode violation resolved to 2 elements — khác với case substring thường gặp, ở đây 2 phần tử có tên **giống hệt nhau**: FAB (`aria-label="Nhập giao dịch"`, `BottomNav.tsx`) và nút trigger `QuickEntryDialog` render ngay trong nội dung trang (text "Nhập giao dịch"). Cả 2 đều mở đúng 1 dialog (cùng store `useQuickEntryStore`).
+- nguyên nhân: trang `/` hiện cả 2 UI cùng lúc trên mobile (FAB cố định dưới đáy + nút trong nội dung trang) — chủ đích thiết kế (2 lối vào cùng 1 hành vi), không phải bug.
+- cách fix: dùng `.first()` (không quan trọng bấm cái nào vì cùng hành vi), hoặc scope hẹp hơn (`page.locator('main').getByRole(...)` để chỉ lấy nút trong nội dung, loại FAB cố định).
+- ngày: 2026-07-05
+
 ### write-flow làm đỏ spec số tuyệt đối (dirty-data pollution)
 - triệu chứng: reports.spec.ts bỗng đỏ, T7/2026 expense nhận "13.500.000"/"19.500.000" thay vì 12.500.000, dù không sửa gì màn Báo cáo.
 - nguyên nhân: đồng hồ server ĐANG là 2026-07 (thật). Spec ghi (bqgq-restock) tạo transaction `transactedAt = new Date()` → rơi vào T7 → cộng vào tổng chi phí T7 mà reports.spec assert tuyệt đối. Chạy cùng suite 2 worker còn tạo race (đọc giữa 2 lần insert → thấy số lưng chừng).

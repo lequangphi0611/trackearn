@@ -19,17 +19,14 @@ import {
 } from "@/components/ui/combobox";
 import { SellDeviceForm } from "../../devices/components/SellDeviceForm";
 import { TransactionForm } from "./TransactionForm";
+import { MODES, type DeviceTransactionMode } from "./device-transaction-modes";
 
 type Category = { id: string; name: string };
 type DeviceOption = { id: string; name: string; conditionNote: string | null };
 type ComboItem = { value: string; label: string };
 
-const MODES = [
-  { key: "sell", label: "Bán máy trong kho" },
-  { key: "income", label: "Thu khác (sửa chữa, phụ kiện...)" },
-  { key: "expense", label: "Chi phí" },
-] as const;
-type Mode = (typeof MODES)[number]["key"];
+export type { DeviceTransactionMode };
+type Mode = DeviceTransactionMode;
 
 /**
  * Mảng thiết bị có 3 kiểu giao dịch khác hẳn nhau — thay vì công tắc Thu/Chi
@@ -43,6 +40,7 @@ export function DeviceTransactionForm({
   categories,
   defaultDateTime,
   defaultDate,
+  defaultMode,
   onSuccess,
   stickySubmit,
 }: {
@@ -51,13 +49,17 @@ export function DeviceTransactionForm({
   categories: Category[];
   defaultDateTime: string;
   defaultDate: string;
+  /** Preset từ CTA hub (vd /devices → "Bán máy từ kho"), xem transactions/[line]/new/page.tsx. */
+  defaultMode?: DeviceTransactionMode;
   /** Có mặt → thay điều hướng mặc định về list sau khi lưu (vd quick-entry đóng dialog). */
   onSuccess?: () => void;
   /** Ghim nút Lưu ở đáy vùng cuộn (dialog dài) — luồn xuống các form con. */
   stickySubmit?: boolean;
 }) {
   const router = useRouter();
-  const [mode, setMode] = useState<Mode>(devices.length > 0 ? "sell" : "income");
+  const [mode, setMode] = useState<Mode>(
+    defaultMode ?? (devices.length > 0 ? "sell" : "income"),
+  );
   const [selected, setSelected] = useState<ComboItem | null>(null);
 
   const items: ComboItem[] = devices.map((d) => ({

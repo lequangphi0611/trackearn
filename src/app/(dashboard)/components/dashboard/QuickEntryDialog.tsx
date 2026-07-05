@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { TRANSACTION_LINES, getTransactionLine } from "@/lib/transaction-lines";
 import { useQuickEntryStore } from "@/lib/quick-entry-store";
+import { RepairJobHubCard } from "../RepairJobHubCard";
 import { TransactionForm } from "../../transactions/components/TransactionForm";
 import { DeviceTransactionForm } from "../../transactions/components/DeviceTransactionForm";
 
@@ -99,6 +100,12 @@ export function QuickEntryDialog({
               ))}
             </Select>
           </div>
+
+          {/* Xe múc: dialog này từng chỉ có "Nhập thu/chi", không có lối vào
+              "Tạo job sửa máy" như hub /transactions/xe-muc — bổ sung để đồng
+              bộ, đồng thời đóng vai cảnh báo chéo (issue #12 round 2 BA/UX):
+              nhắc trước khi vào form là mục dưới KHÔNG trừ kho. */}
+          {config?.repairJobHref && <RepairJobHubCard />}
 
           {config &&
             // key={line}: đổi mảng phải remount form, không giữ state mảng cũ.

@@ -112,13 +112,12 @@ test.describe("BottomNav", () => {
     await expect(
       page.getByRole("menuitem", { name: "Chi phí chung" }),
     ).toBeVisible();
-    await expect(
-      page.getByRole("menuitem", { name: "Job sửa xe múc" }),
-    ).toBeVisible();
     await expect(page.getByRole("dialog")).toHaveCount(0);
 
-    // Chọn 1 mục điều hướng thật sang màn nhập giao dịch mảng đó.
+    // Chọn 1 mục điều hướng thật — Xe múc có quickEntryUsesHub:true nên dẫn
+    // vào hub /transactions/xe-muc (chọn tiếp job sửa máy hay nhập thu/chi),
+    // KHÔNG còn thẳng /transactions/xe-muc/new như trước issue #12.
     await page.getByRole("menuitem", { name: "Xe múc", exact: true }).click();
-    await expect(page).toHaveURL(/\/transactions\/xe-muc\/new$/);
+    await expect(page).toHaveURL(/\/transactions\/xe-muc$/);
   });
 });
