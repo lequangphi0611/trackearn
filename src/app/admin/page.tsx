@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { getRecentErrors } from "@/queries/error-logs";
 import { getMigrationStatus } from "@/lib/migration-status";
 import { formatDateTime } from "@/lib/format";
+import { ResetOwnerPasswordForm } from "./ResetOwnerPasswordForm";
 
 // Trang chẩn đoán DEV: sức khỏe app/DB, phiên bản đang chạy, migration, lỗi
 // runtime gần đây. Luôn ping thật, không cache.
@@ -91,6 +92,16 @@ export default async function AdminPage() {
         <Row label="Migration mới nhất (DB)">
           {migration ? `${migration.hash.slice(0, 12)} · ${formatDateTime(migration.at)}` : "—"}
         </Row>
+      </section>
+
+      <section className="rounded-lg border p-4">
+        <h2 className="mb-1 font-medium">Đặt lại mật khẩu chủ shop</h2>
+        <p className="mb-3 text-sm text-muted-foreground">
+          Dùng khi chủ shop quên mật khẩu và không còn ai đủ quyền reset trong
+          app. Đặt mật khẩu tạm rồi để chủ shop tự đổi lại trong Cài đặt. Mọi
+          phiên đăng nhập cũ của chủ shop sẽ bị thu hồi.
+        </p>
+        <ResetOwnerPasswordForm />
       </section>
 
       <section className="rounded-lg border p-4">
